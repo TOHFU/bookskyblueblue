@@ -13,6 +13,8 @@ build/
 coverage/
 playwright-report/
 test-results/
+storybook-static/
+tsconfig.tsbuildinfo
 
 # env
 .env*
