@@ -1,12 +1,13 @@
 "use client";
 
-import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
+import { ChakraProvider } from "@chakra-ui/react";
 import type { ReactNode } from "react";
+import { appSystem } from "@/styles/theme";
 
 type ProvidersProps = {
   children: ReactNode;
 };
 
 export function Providers({ children }: ProvidersProps) {
-  return <ChakraProvider value={defaultSystem}>{children}</ChakraProvider>;
+  return <ChakraProvider value={appSystem}>{children}</ChakraProvider>;
 }
