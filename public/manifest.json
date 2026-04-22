@@ -1,0 +1,17 @@
+{
+  "name": "Book Sky, Blue Blue",
+  "short_name": "BookSky",
+  "description": "青空文庫の本を検索・ダウンロード・閲覧できるWebアプリ",
+  "start_url": "/splash",
+  "display": "standalone",
+  "background_color": "#16AEFA",
+  "theme_color": "#16AEFA",
+  "icons": [
+    {
+      "src": "/icons/pwa-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
