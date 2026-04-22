@@ -10,6 +10,8 @@ export const workSchema = z.object({
   writingStyle: z.string().optional(),
   publisher: z.string().optional(),
   sourceBookName: z.string().optional(),
+  htmlFileUrl: z.string().optional(),
+  htmlFileCharset: z.string().optional(),
   content: z.string().optional(),
 });
 
