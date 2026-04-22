@@ -16,3 +16,90 @@ body {
   min-height: 100vh;
   font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
 }
+
+/* ========================================
+   Book content - 縦書きレイアウト / ルビ
+   ======================================== */
+
+/* 外側コンテナは overflow: hidden で Book.tsx 側で制御する */
+.book-content {
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  /* height: 100% は親要素（contentAreaRef）に依存 */
+  height: 100%;
+  /* コンテンツが増えるほど左方向に幅が伸びる */
+  width: max-content;
+  font-family: "Noto Serif JP", serif;
+  font-size: 16px;
+  font-weight: 700;
+  /*
+    縦書きでは line-height = カラム幅（横方向の行間）になる。
+    ルビ(8px)が right 側に配置されるため、
+    本文(16px) + ルビ(8px) + 余白(8px) = 32px = 2em を設定することで、
+    ルビが隣カラムにはみ出さず行間も均一になる。
+  */
+  line-height: 2;
+  color: #012639;
+}
+
+.book-content p {
+  margin: 0;
+}
+
+.book-content h1,
+.book-content h2,
+.book-content h3,
+.book-content h4 {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0;
+}
+
+/*
+  ルビ：縦書きでは ruby-position: over = 文字の右側に配置。
+  line-height を 0 にしてルビ自身による追加スペースを抑制し、
+  親の line-height:2 の範囲内で収まるようにする。
+*/
+.book-content ruby {
+  ruby-position: over;
+  line-height: 0;
+}
+
+.book-content rt {
+  font-size: 8px;
+  line-height: 1;
+}
+
+/* ========================================
+   Aozora Bunko 字下げ / 字上げ (縦書き対応)
+   ========================================
+   横書き用の margin-left/margin-right は writing-mode: vertical-rl では
+   ブロック軸（横方向）のマージンになり、columnWidth(32px) の倍数でない値が
+   列グリッドをずらしてページ境界で文字が切れる原因になる。
+   !important でインラインスタイルを上書きし、縦方向(margin-top)に変換する。
+*/
+.book-content [class*="jisage_"],
+.book-content [class*="jiage_"] {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+/* 字下げ: 列の上から N 文字分の余白 */
+.book-content .jisage_1  { margin-top: 1em; }
+.book-content .jisage_2  { margin-top: 2em; }
+.book-content .jisage_3  { margin-top: 3em; }
+.book-content .jisage_4  { margin-top: 4em; }
+.book-content .jisage_5  { margin-top: 5em; }
+.book-content .jisage_6  { margin-top: 6em; }
+.book-content .jisage_7  { margin-top: 7em; }
+.book-content .jisage_8  { margin-top: 8em; }
+.book-content .jisage_9  { margin-top: 9em; }
+.book-content .jisage_10 { margin-top: 10em; }
+
+/* 字上げ: 列の下から N 文字分の余白 */
+.book-content .jiage_1  { margin-bottom: 1em; }
+.book-content .jiage_2  { margin-bottom: 2em; }
+.book-content .jiage_3  { margin-bottom: 3em; }
+.book-content .jiage_4  { margin-bottom: 4em; }
+.book-content .jiage_5  { margin-bottom: 5em; }
+
