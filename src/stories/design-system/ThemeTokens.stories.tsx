@@ -26,7 +26,15 @@ const paletteOrder = [
 
 const scales = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950] as const;
 
-const typographyRows = [
+type TypographyRow = {
+  token: string;
+  size: string;
+  lineHeight: string;
+  weight: number;
+  letterSpacing?: string;
+};
+
+const typographyRows: readonly TypographyRow[] = [
   { token: "xs/font-normal", size: "12px", lineHeight: "16px", weight: 600 },
   { token: "sm/font-normal", size: "14px", lineHeight: "20px", weight: 600 },
   { token: "md/font-normal", size: "16px", lineHeight: "24px", weight: 600 },
