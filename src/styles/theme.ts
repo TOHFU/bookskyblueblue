@@ -396,7 +396,7 @@ const config = defineConfig({
         "bg.muted": { value: "{colors.blue.200}" },
         "bg.emphasized": { value: "{colors.blue.300}" },
         "bg.inverted": { value: "{colors.blue.800}" },
-        "bg.panel": { value: "{colors.blue.600}" },
+        "bg.panel": { value: "{colors.bg}" },
         "bg.error": { value: "{colors.red.700}" },
         "bg.warning": { value: "{colors.orange.700}" },
         "bg.success": { value: "{colors.green.800}" },

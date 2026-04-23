@@ -4,9 +4,10 @@ import { ChakraProvider } from "@chakra-ui/react";
 import createCache from "@emotion/cache";
 import { CacheProvider } from "@emotion/react";
 import { useServerInsertedHTML } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { appSystem } from "@/styles/theme";
+import { useTimeBasedBgColor } from "@/hooks/useTimeBasedBgColor";
 
 type ProvidersProps = {
   children: ReactNode;
@@ -96,7 +97,21 @@ export function Providers({ children }: ProvidersProps) {
 
   return (
     <CacheProvider value={cache}>
-      <ChakraProvider value={appSystem}>{children}</ChakraProvider>
+      <ChakraProvider value={appSystem}>
+        <TimeBgColorApplier />
+        {children}
+      </ChakraProvider>
     </CacheProvider>
   );
+}
+
+/** 現在時刻に基づいて --chakra-colors-bg CSS変数を動的に更新するコンポーネント */
+function TimeBgColorApplier() {
+  const color = useTimeBasedBgColor();
+
+  useEffect(() => {
+    document.documentElement.style.setProperty("--chakra-colors-bg", color);
+  }, [color]);
+
+  return null;
 }
