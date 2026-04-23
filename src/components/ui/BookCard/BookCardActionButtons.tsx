@@ -42,7 +42,7 @@ export function BookCardActionButtons({
           position="absolute"
           top="-1px"
           right="-1px"
-          onClick={() => onDelete?.(work)}
+          onClick={(e) => { e.stopPropagation(); onDelete?.(work); }}
         >
           <X size={16} />
         </IconButton>
@@ -59,7 +59,7 @@ export function BookCardActionButtons({
           position="relative"
           bottom="-1px"
           right="-1px"
-          onClick={() => onDetail?.(work)}
+          onClick={(e) => { e.stopPropagation(); onDetail?.(work); }}
         >
           <ArrowRight size={16} />
         </IconButton>
