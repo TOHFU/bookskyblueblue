@@ -17,12 +17,12 @@ export function TopEmptyState({ onSearchClick }: TopEmptyStateProps) {
       align="center"
       gap="24px"
       p="24px 16px"
-      bg="#16AEFA"
+      bg="bg"
       borderWidth="1px"
-      borderColor="#27272A"
+      borderColor="gray.800"
       w="full"
     >
-      <Box color="#012639">
+      <Box color="fg">
         <Book size={32} strokeWidth={1.5} />
       </Box>
 
@@ -31,7 +31,7 @@ export function TopEmptyState({ onSearchClick }: TopEmptyStateProps) {
         fontSize="16px"
         fontWeight="800"
         lineHeight="24px"
-        color="#012639"
+        color="fg"
         textAlign="center"
         w="full"
       >
@@ -43,7 +43,7 @@ export function TopEmptyState({ onSearchClick }: TopEmptyStateProps) {
         fontSize="14px"
         fontWeight="600"
         lineHeight="20px"
-        color="#134152"
+        color="fg.muted"
         textAlign="center"
         w="full"
       >
@@ -52,7 +52,7 @@ export function TopEmptyState({ onSearchClick }: TopEmptyStateProps) {
 
       <Button
         variant="solid"
-        bg="#18181B"
+        bg="gray.900"
         color="white"
         h="36px"
         px="14px"

@@ -81,7 +81,7 @@ export function SearchScreen() {
   const hasMore = displayedCount < results.length;
 
   return (
-    <Box as="main" minH="100svh" bg="#16AEFA" position="relative">
+    <Box as="main" minH="100svh" bg="bg" position="relative">
       {/* 背景画像 */}
       <Box
         position="absolute"
@@ -115,7 +115,7 @@ export function SearchScreen() {
           variant="solid"
           w="44px"
           h="44px"
-          bg="#18181B"
+          bg="gray.900"
           color="white"
           onClick={() => router.push("/")}
         >
@@ -132,7 +132,7 @@ export function SearchScreen() {
             left="20px"
             top="50%"
             transform="translateY(-50%)"
-            color="#03608F"
+            color="blue.800"
             opacity={0.7}
             zIndex={1}
             pointerEvents="none"
@@ -143,15 +143,15 @@ export function SearchScreen() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="作品名・作者名"
-            bg="#16AEFA"
+            bg="bg"
             borderWidth="1px"
-            borderColor="#012639"
-            color="#012639"
+            borderColor="border"
+            color="fg"
             h="44px"
             pl="44px"
             fontFamily="'Noto Sans JP', sans-serif"
             fontSize="18px"
-            _placeholder={{ color: "#03608F", opacity: 0.7 }}
+            _placeholder={{ color: "blue.800", opacity: 0.7 }}
             aria-label="作品を検索"
           />
         </Box>
@@ -187,7 +187,7 @@ export function SearchScreen() {
         {/* ローディングインジケータ */}
         {isLoading && (
           <Flex justify="center" py="16px">
-            <Box as="span" className="search-loading-icon" color="#012639">
+            <Box as="span" className="search-loading-icon" color="fg">
               <RotateCw size={24} />
             </Box>
           </Flex>

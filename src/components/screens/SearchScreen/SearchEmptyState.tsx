@@ -21,12 +21,12 @@ export function SearchEmptyState({ query, onSampleClick }: SearchEmptyStateProps
       gap="16px"
       px="16px"
       py="24px"
-      bg="#16AEFA"
+      bg="bg"
       borderWidth="1px"
-      borderColor="#27272A"
+      borderColor="gray.800"
       w="full"
     >
-      <Box color="#03608F">
+      <Box color="blue.800">
         <SearchX size={32} strokeWidth={1.5} />
       </Box>
 
@@ -35,7 +35,7 @@ export function SearchEmptyState({ query, onSampleClick }: SearchEmptyStateProps
         fontSize="16px"
         fontWeight="800"
         lineHeight="24px"
-        color="#012639"
+        color="fg"
         textAlign="center"
         w="full"
       >
@@ -47,7 +47,7 @@ export function SearchEmptyState({ query, onSampleClick }: SearchEmptyStateProps
         fontSize="14px"
         fontWeight="600"
         lineHeight="20px"
-        color="#134152"
+        color="fg.muted"
         textAlign="center"
         w="full"
       >
@@ -65,7 +65,7 @@ export function SearchEmptyState({ query, onSampleClick }: SearchEmptyStateProps
               fontSize="14px"
               fontWeight="600"
               lineHeight="20px"
-              color="#012639"
+              color="fg"
               textDecoration="underline"
               textAlign="left"
               cursor="pointer"
