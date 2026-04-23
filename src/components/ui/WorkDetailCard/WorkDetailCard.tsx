@@ -22,7 +22,7 @@ export function WorkDetailCard({ work, onDownload }: WorkDetailCardProps) {
           <Text
             fontSize="3xs"
             fontWeight="600"
-            lineHeight="14px"
+            lineHeight="3.5"
             color="fg"
           >
             {work.id}
@@ -33,7 +33,7 @@ export function WorkDetailCard({ work, onDownload }: WorkDetailCardProps) {
         <Text
           fontSize="md"
           fontWeight="400"
-          lineHeight="28px"
+          lineHeight="7"
           color="fg"
         >
           {work.title}
@@ -44,7 +44,7 @@ export function WorkDetailCard({ work, onDownload }: WorkDetailCardProps) {
           <Text
             fontSize="2xs"
             fontWeight="600"
-            lineHeight="16px"
+            lineHeight="4"
             color="fg"
             w="full"
           >
@@ -57,7 +57,7 @@ export function WorkDetailCard({ work, onDownload }: WorkDetailCardProps) {
           <Text
             fontSize="2xs"
             fontWeight="600"
-            lineHeight="16px"
+            lineHeight="4"
             color="fg"
             w="full"
           >
@@ -70,7 +70,7 @@ export function WorkDetailCard({ work, onDownload }: WorkDetailCardProps) {
           <Text
             fontSize="xs"
             fontWeight="600"
-            lineHeight="20px"
+            lineHeight="5"
             color="fg"
             w="full"
           >
@@ -83,7 +83,7 @@ export function WorkDetailCard({ work, onDownload }: WorkDetailCardProps) {
           <Text
             fontSize="xs"
             fontWeight="600"
-            lineHeight="20px"
+            lineHeight="5"
             color="fg"
             w="full"
           >
@@ -136,7 +136,7 @@ export function WorkDetailCard({ work, onDownload }: WorkDetailCardProps) {
           <Text
             fontSize="xs"
             fontWeight="400"
-            lineHeight="20px"
+            lineHeight="5"
             color="fg"
             w="full"
           >
@@ -146,7 +146,7 @@ export function WorkDetailCard({ work, onDownload }: WorkDetailCardProps) {
       </Flex>
 
       {/* カード内フッター（ダウンロードボタン） */}
-      <Flex justify="center" p="0 6 6">
+      <Flex justify="center" pt="0" px="6" pb="6">
         <Button
           variant="solid"
           bg="fg"
