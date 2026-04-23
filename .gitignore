@@ -33,5 +33,8 @@ pnpm-debug.log*
 # temp
 .temp/*
 
-# github
+# github (copilot-instructionsとskillsは除外、workflowsは追跡する)
 .github/*
+!.github/workflows
+!.github/workflows/*
+.vercel
