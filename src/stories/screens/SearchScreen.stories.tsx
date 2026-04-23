@@ -42,7 +42,7 @@ function SearchScreenPreview({ query, results, isLoading }: SearchScreenPreviewP
   const isEmpty = !isLoading && results.length === 0 && query.length > 0;
 
   return (
-    <Box as="main" minH="100svh" bg="#16AEFA" position="relative">
+    <Box as="main" minH="100svh" bg="bg" position="relative">
       {/* ツールバー */}
       <Flex
         as="header"
@@ -83,7 +83,7 @@ function SearchScreenPreview({ query, results, isLoading }: SearchScreenPreviewP
             value={query}
             readOnly
             placeholder="作品名・作者名"
-            bg="#16AEFA"
+            bg="bg"
             borderWidth="1px"
             borderColor="#012639"
             color="#012639"

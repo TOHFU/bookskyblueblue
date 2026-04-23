@@ -21,7 +21,7 @@ function BookScreenPreview({
       as="main"
       w="375px"
       h="770px"
-      bg="#16AEFA"
+      bg="bg"
       position="relative"
       overflow="hidden"
     >
