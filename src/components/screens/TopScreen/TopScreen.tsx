@@ -6,6 +6,7 @@ import { Search } from "lucide-react";
 import { useEffect, useState, useCallback } from "react";
 import { BookCard } from "@/components/ui/BookCard";
 import { DeleteDialog } from "@/components/ui/DeleteDialog";
+import { AppToolbar } from "@/components/ui/AppToolbar";
 import { TopEmptyState } from "@/components/screens/TopScreen/TopEmptyState";
 import { getSavedWorks, deleteWork } from "@/data/repositories/workIndexedDbRepository";
 import type { Work } from "@/domain/entities/work";
@@ -84,29 +85,21 @@ export function TopScreen() {
       />
 
       {/* ツールバー */}
-      <Flex
-        as="header"
-        direction="row"
-        justify="flex-end"
-        align="center"
-        w="full"
-        h="44px"
-        px="0"
-        position="relative"
-        zIndex={1}
-      >
-        <IconButton
-          aria-label="検索画面へ移動"
-          variant="solid"
-          w="44px"
-          h="44px"
-          bg="gray.900"
-          color="white"
-          onClick={handleSearchClick}
-        >
-          <Search size={20} />
-        </IconButton>
-      </Flex>
+      <AppToolbar
+        rightSlot={
+          <IconButton
+            aria-label="検索画面へ移動"
+            variant="solid"
+            w="44px"
+            h="44px"
+            bg="gray.900"
+            color="white"
+            onClick={handleSearchClick}
+          >
+            <Search size={20} />
+          </IconButton>
+        }
+      />
 
       {/* コンテンツエリア（IndexedDB ロード完了後にフェードイン） */}
       <Box

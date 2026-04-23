@@ -3,6 +3,7 @@
 import { Badge, Box, Button, Flex, Text } from "@chakra-ui/react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, X, BookDown } from "lucide-react";
+import { AppToolbar } from "@/components/ui/AppToolbar";
 import type { Work } from "@/domain/entities/work";
 
 type SearchDetailScreenProps = {
@@ -49,29 +50,22 @@ export function SearchDetailScreen({ work }: SearchDetailScreenProps) {
       />
 
       {/* ツールバー */}
-      <Flex
-        as="header"
-        direction="row"
-        justify="flex-end"
-        align="center"
-        w="full"
-        h="44px"
-        position="relative"
-        zIndex={1}
-      >
-        <Button
-          variant="solid"
-          w="44px"
-          h="44px"
-          bg="gray.900"
-          color="white"
-          onClick={handleClose}
-          p="0"
-          aria-label="TOPに戻る"
-        >
-          <X size={20} />
-        </Button>
-      </Flex>
+      <AppToolbar
+        rightSlot={
+          <Button
+            variant="solid"
+            w="44px"
+            h="44px"
+            bg="gray.900"
+            color="white"
+            onClick={handleClose}
+            p="0"
+            aria-label="TOPに戻る"
+          >
+            <X size={20} />
+          </Button>
+        }
+      />
 
       {/* コンテンツエリア */}
       <Flex direction="column" align="stretch" gap="24px" p="24px" w="full" position="relative" zIndex={1}>
