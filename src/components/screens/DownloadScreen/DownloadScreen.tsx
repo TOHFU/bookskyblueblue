@@ -73,23 +73,22 @@ export function DownloadScreen({ identifier }: DownloadScreenProps) {
       as="main"
       w="375px"
       minH="770px"
-      bg="#16AEFA"
+      bg="bg"
       display="flex"
       flexDirection="column"
       justifyContent="center"
       alignItems="stretch"
-      gap="30px"
-      p="32px 32px 80px"
+      gap="7.5"
+      p="8 8 20"
       mx="auto"
     >
       {status === "error" ? (
-        <Flex direction="column" align="center" gap="16px">
+        <Flex direction="column" align="center" gap="4">
           <Text
-            fontFamily="'Noto Sans JP', sans-serif"
-            fontSize="14px"
+            fontSize="xs"
             fontWeight="600"
             lineHeight="20px"
-            color="#012639"
+            color="fg"
             textAlign="center"
           >
             {errorMessage}
@@ -98,27 +97,26 @@ export function DownloadScreen({ identifier }: DownloadScreenProps) {
       ) : (
         <>
           <Text
-            fontFamily="'Noto Sans JP', sans-serif"
-            fontSize="10px"
+            fontSize="3xs"
             fontWeight="600"
             lineHeight="14px"
-            color="#012639"
+            color="fg"
             textAlign="center"
             w="full"
           >
             {status === "done" ? "ダウンロードが完了しました。" : "作品をダウンロードしています。"}
           </Text>
 
-          <Box w="full" bg="#BFE9FE" boxShadow="inset 0px 0px 0px 1px rgba(0, 0, 0, 0.05)">
+          <Box w="full" bg="bg.muted" boxShadow="inset 0px 0px 0px 1px rgba(0, 0, 0, 0.05)">
             <Progress.Root
               value={progress}
               max={100}
-              h="6px"
-              bg="#BFE9FE"
+              h="1.5"
+              bg="bg.muted"
               borderRadius="0"
             >
-              <Progress.Track bg="#BFE9FE" borderRadius="0">
-                <Progress.Range bg="#012639" />
+              <Progress.Track bg="bg.muted" borderRadius="0">
+                <Progress.Range bg="fg" />
               </Progress.Track>
             </Progress.Root>
           </Box>

@@ -90,10 +90,10 @@ export function TopScreen() {
           <IconButton
             aria-label="検索画面へ移動"
             variant="solid"
-            w="44px"
-            h="44px"
+            w="11"
+            h="11"
             bg="gray.900"
-            color="white"
+            color="fg.inverted"
             onClick={handleSearchClick}
           >
             <Search size={20} />
@@ -116,7 +116,7 @@ export function TopScreen() {
           <Flex
             direction="column"
             align="stretch"
-            gap="24px"
+            gap="6"
             w="full"
           >
             {works.map((work) => (

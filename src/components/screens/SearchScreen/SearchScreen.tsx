@@ -106,10 +106,10 @@ export function SearchScreen() {
           <IconButton
             aria-label="TOPに戻る"
             variant="solid"
-            w="44px"
-            h="44px"
+            w="11"
+            h="11"
             bg="gray.900"
-            color="white"
+            color="fg.inverted"
             onClick={() => router.push("/")}
           >
             <X size={20} />
@@ -118,12 +118,12 @@ export function SearchScreen() {
       />
 
       {/* コンテンツエリア */}
-      <Flex direction="column" align="stretch" gap="24px" p="24px" w="full" position="relative" zIndex={1}>
+      <Flex direction="column" align="stretch" gap="6" p="6" w="full" position="relative" zIndex={1}>
         {/* 検索入力 */}
         <Box position="relative">
           <Box
             position="absolute"
-            left="20px"
+            left="5"
             top="50%"
             transform="translateY(-50%)"
             color="blue.800"
@@ -141,10 +141,9 @@ export function SearchScreen() {
             borderWidth="1px"
             borderColor="border"
             color="fg"
-            h="44px"
-            pl="44px"
-            fontFamily="'Noto Sans JP', sans-serif"
-            fontSize="18px"
+            h="11"
+            pl="11"
+            fontSize="md"
             _placeholder={{ color: "blue.800", opacity: 0.7 }}
             aria-label="作品を検索"
           />
@@ -180,7 +179,7 @@ export function SearchScreen() {
 
         {/* ローディングインジケータ */}
         {isLoading && (
-          <Flex justify="center" py="16px">
+          <Flex justify="center" py="4">
             <Box as="span" className="search-loading-icon" color="fg">
               <RotateCw size={24} />
             </Box>
