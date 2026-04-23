@@ -126,7 +126,7 @@ export function BookCard({
               display="flex"
               alignItems="center"
             >
-              {work.publisher}
+              {work.publisher.length > 6 ? work.publisher.slice(0, 6) + "…" : work.publisher}
             </Badge>
           )}
         </Flex>
