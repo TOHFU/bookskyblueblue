@@ -15,6 +15,7 @@ type BookScreenProps = {
 };
 
 const FADE_TIMEOUT_MS = 3000;
+const FLOATING_CONTROL_HEIGHT = 44;
 
 /** imgタグをalt属性のテキストに置換し、スクリプト・危険な属性を除去する */
 function sanitizeHtml(html: string): string {
@@ -187,7 +188,6 @@ export function BookScreen({ identifier }: BookScreenProps) {
       bg="#16AEFA"
       position="relative"
       overflow="hidden"
-      onClick={showControls}
     >
       {/* 縦書きコンテンツエリア（padding内の領域）
           pageWidth確定後はビューポートを列幅の倍数に切り詰め、
@@ -236,6 +236,41 @@ export function BookScreen({ identifier }: BookScreenProps) {
         {currentPage + 1}
       </Text>
 
+      {/* クリックゾーン：右半分 → ページ-1（前のページ）*/}
+      <Box
+        position="absolute"
+        top="0"
+        right="0"
+        w="50%"
+        bottom={`${FLOATING_CONTROL_HEIGHT}px`}
+        zIndex={1}
+        onClick={handlePrevPage}
+        cursor="pointer"
+      />
+
+      {/* クリックゾーン：左半分 → ページ+1（次のページ）*/}
+      <Box
+        position="absolute"
+        top="0"
+        left="0"
+        w="50%"
+        bottom={`${FLOATING_CONTROL_HEIGHT}px`}
+        zIndex={1}
+        onClick={handleNextPage}
+        cursor="pointer"
+      />
+
+      {/* クリックゾーン：FloatingControlエリア → showControls */}
+      <Box
+        position="absolute"
+        bottom="0"
+        left="0"
+        w="full"
+        h={`${FLOATING_CONTROL_HEIGHT}px`}
+        zIndex={1}
+        onClick={showControls}
+      />
+
       {/* フローティングコントロール */}
       <Box
         position="absolute"
@@ -245,6 +280,7 @@ export function BookScreen({ identifier }: BookScreenProps) {
         opacity={controlsVisible ? 1 : 0}
         transition="opacity 0.5s ease"
         pointerEvents={controlsVisible ? "auto" : "none"}
+        zIndex={2}
       >
         <Flex direction="row" align="center">
           {/* 前のページへ（← → 次への方向なので left押下で+1） */}
