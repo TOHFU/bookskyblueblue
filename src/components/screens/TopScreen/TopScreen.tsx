@@ -63,7 +63,7 @@ export function TopScreen() {
     <Box
       as="main"
       minH="100svh"
-      bg="#16AEFA"
+      bg="bg"
       position="relative"
     >
       {/* 背景画像 */}
@@ -100,7 +100,7 @@ export function TopScreen() {
           variant="solid"
           w="44px"
           h="44px"
-          bg="#18181B"
+          bg="gray.900"
           color="white"
           onClick={handleSearchClick}
         >

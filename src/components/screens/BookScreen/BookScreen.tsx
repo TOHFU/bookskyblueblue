@@ -203,7 +203,7 @@ export function BookScreen({ identifier }: BookScreenProps) {
       >
         {htmlContent === null ? (
           <Flex w="full" h="full" align="center" justify="center">
-            <Spinner color="#012639" />
+            <Spinner color="fg" />
           </Flex>
         ) : (
           <Box
@@ -231,7 +231,7 @@ export function BookScreen({ identifier }: BookScreenProps) {
         fontSize="16px"
         fontWeight="700"
         lineHeight="18px"
-        color="#012639"
+        color="fg"
       >
         {currentPage + 1}
       </Text>
@@ -287,7 +287,7 @@ export function BookScreen({ identifier }: BookScreenProps) {
           <IconButton
             aria-label="次のページ"
             variant="solid"
-            bg="#18181B"
+            bg="gray.900"
             color="white"
             w="44px"
             h="44px"
@@ -301,7 +301,7 @@ export function BookScreen({ identifier }: BookScreenProps) {
           <IconButton
             aria-label="TOPに戻る"
             variant="solid"
-            bg="#18181B"
+            bg="gray.900"
             color="white"
             w="44px"
             h="44px"
@@ -314,7 +314,7 @@ export function BookScreen({ identifier }: BookScreenProps) {
           <IconButton
             aria-label="前のページ"
             variant="solid"
-            bg="#18181B"
+            bg="gray.900"
             color="white"
             w="44px"
             h="44px"
