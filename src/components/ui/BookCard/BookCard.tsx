@@ -30,9 +30,9 @@ export function BookCard({
       align="stretch"
       gap="20px"
       w="full"
-      bg="#16AEFA"
+      bg="bg"
       borderWidth="1px"
-      borderColor="#012639"
+      borderColor="border"
       aria-label={`作品: ${work.title}`}
       onClick={onDetail ? () => onDetail(work) : undefined}
       cursor={onDetail ? "pointer" : undefined}
@@ -52,7 +52,7 @@ export function BookCard({
           fontSize="18px"
           fontWeight="400"
           lineHeight="28px"
-          color="#012639"
+          color="fg"
         >
           {work.title}
         </Text>
@@ -64,7 +64,7 @@ export function BookCard({
             fontSize="14px"
             fontWeight="600"
             lineHeight="20px"
-            color="#012639"
+            color="fg"
             w="full"
           >
             {work.author}
@@ -78,7 +78,7 @@ export function BookCard({
             fontSize="14px"
             fontWeight="600"
             lineHeight="20px"
-            color="#012639"
+            color="fg"
             w="full"
           >
             {work.firstPublishedYear}
@@ -98,8 +98,8 @@ export function BookCard({
               fontSize="12px"
               fontWeight="600"
               lineHeight="16px"
-              color="#27272A"
-              borderColor="#012639"
+              color="gray.800"
+              borderColor="border"
               borderWidth="1px"
               bg="transparent"
               boxShadow="none"
@@ -116,8 +116,8 @@ export function BookCard({
               fontSize="12px"
               fontWeight="600"
               lineHeight="16px"
-              color="#27272A"
-              borderColor="#012639"
+              color="gray.800"
+              borderColor="border"
               borderWidth="1px"
               bg="transparent"
               boxShadow="none"
