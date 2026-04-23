@@ -1,8 +1,8 @@
 "use client";
 
-import { Box, Flex, IconButton, Input, Spinner } from "@chakra-ui/react";
+import { Box, Flex, IconButton, Input } from "@chakra-ui/react";
 import { useRouter } from "next/navigation";
-import { X, Search } from "lucide-react";
+import { X, Search, RotateCw } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { BookCard } from "@/components/ui/BookCard";
 import { SearchEmptyState } from "./SearchEmptyState";
@@ -164,14 +164,19 @@ export function SearchScreen() {
           />
         ) : (
           <>
-            {displayedWorks.map((work) => (
-              <BookCard
+            {displayedWorks.map((work, index) => (
+              <Box
                 key={work.id}
-                work={work}
-                showDeleteButton={false}
-                showDetailButton
-                onDetail={handleDetailClick}
-              />
+                className="search-card-fadein"
+                style={{ animationDelay: `${index * 0.05}s` }}
+              >
+                <BookCard
+                  work={work}
+                  showDeleteButton={false}
+                  showDetailButton
+                  onDetail={handleDetailClick}
+                />
+              </Box>
             ))}
 
             {/* 無限スクロール用番兵 */}
@@ -182,7 +187,9 @@ export function SearchScreen() {
         {/* ローディングインジケータ */}
         {isLoading && (
           <Flex justify="center" py="16px">
-            <Spinner color="#012639" size="md" />
+            <Box as="span" className="search-loading-icon" color="#012639">
+              <RotateCw size={24} />
+            </Box>
           </Flex>
         )}
       </Flex>

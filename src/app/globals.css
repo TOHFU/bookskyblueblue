@@ -18,6 +18,54 @@ body {
 }
 
 /* ========================================
+   TOP画面 - コンテンツフェードイン
+   IndexedDB ロード完了後にコンテンツエリアをフェードインさせる
+   ======================================== */
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.top-content-fadein {
+  animation: fadeIn 0.4s ease forwards;
+}
+
+/* ========================================
+   SEARCH画面 - ローディングアイコン回転
+   ======================================== */
+
+@keyframes loadingRotate {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.search-loading-icon {
+  animation: loadingRotate 1s linear infinite;
+  display: inline-flex;
+}
+
+/* ========================================
+   SEARCH画面 - カードフェードイン（上から）
+   ======================================== */
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.search-card-fadein {
+  animation: fadeInDown 0.3s ease forwards;
+  opacity: 0;
+}
+
+/* ========================================
    Book content - 縦書きレイアウト / ルビ
    ======================================== */
 
