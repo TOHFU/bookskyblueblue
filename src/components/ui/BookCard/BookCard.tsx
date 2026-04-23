@@ -31,7 +31,7 @@ export function BookCard({
       gap="5"
       w="full"
       bg="bg"
-      borderWidth="1px"
+      borderWidth="2px"
       borderColor="border"
       aria-label={`作品: ${work.title}`}
       onClick={onDetail ? () => onDetail(work) : undefined}

@@ -22,7 +22,7 @@ export function SearchEmptyState({ query, onSampleClick }: SearchEmptyStateProps
       px="4"
       py="6"
       bg="bg"
-      borderWidth="1px"
+      borderWidth="2px"
       borderColor="border"
       w="full"
     >
