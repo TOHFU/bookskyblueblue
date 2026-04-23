@@ -6,6 +6,7 @@ import { Search } from "lucide-react";
 import { useEffect, useState, useCallback } from "react";
 import { BookCard } from "@/components/ui/BookCard";
 import { DeleteDialog } from "@/components/ui/DeleteDialog";
+import { ErrorDialog } from "@/components/ui/ErrorDialog";
 import { AppToolbar } from "@/components/ui/AppToolbar";
 import { TopEmptyState } from "@/components/screens/TopScreen/TopEmptyState";
 import { getSavedWorks, deleteWork } from "@/data/repositories/workIndexedDbRepository";
@@ -21,6 +22,7 @@ export function TopScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [deleteTarget, setDeleteTarget] = useState<Work | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isErrorDialogOpen, setIsErrorDialogOpen] = useState(false);
 
   const loadWorks = useCallback(async () => {
     try {
@@ -28,6 +30,7 @@ export function TopScreen() {
       setWorks(saved);
     } catch {
       setWorks([]);
+      setIsErrorDialogOpen(true);
     } finally {
       setIsLoading(false);
     }
@@ -139,6 +142,12 @@ export function TopScreen() {
       </Box>
 
       {/* 削除確認ダイアログ */}
+      <ErrorDialog
+        message="アプリの初期化に失敗しました。"
+        isOpen={isErrorDialogOpen}
+        onClose={() => setIsErrorDialogOpen(false)}
+      />
+
       <DeleteDialog
         work={deleteTarget}
         isOpen={isDeleteDialogOpen}
