@@ -71,7 +71,7 @@ export function DeleteDialog({
                   <Dialog.Title
                     fontSize="md"
                     fontWeight="400"
-                    lineHeight="28px"
+                    lineHeight="7"
                     color="fg"
                   >
                     作品の削除
@@ -83,7 +83,7 @@ export function DeleteDialog({
                   <Text
                     fontSize="xs"
                     fontWeight="600"
-                    lineHeight="20px"
+                    lineHeight="5"
                     color="fg.muted"
                   >
                     {work.title} を削除してもよろしいですか？

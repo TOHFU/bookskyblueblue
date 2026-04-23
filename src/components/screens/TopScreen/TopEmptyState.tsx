@@ -29,7 +29,7 @@ export function TopEmptyState({ onSearchClick }: TopEmptyStateProps) {
       <Text
         fontSize="sm"
         fontWeight="800"
-        lineHeight="24px"
+        lineHeight="6"
         color="fg"
         textAlign="center"
         w="full"
@@ -40,7 +40,7 @@ export function TopEmptyState({ onSearchClick }: TopEmptyStateProps) {
       <Text
         fontSize="xs"
         fontWeight="600"
-        lineHeight="20px"
+        lineHeight="5"
         color="fg.muted"
         textAlign="center"
         w="full"
