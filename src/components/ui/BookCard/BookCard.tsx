@@ -34,6 +34,8 @@ export function BookCard({
       borderWidth="1px"
       borderColor="#012639"
       aria-label={`作品: ${work.title}`}
+      onClick={onDetail ? () => onDetail(work) : undefined}
+      cursor={onDetail ? "pointer" : undefined}
     >
       {/* 本文情報エリア */}
       <Box
