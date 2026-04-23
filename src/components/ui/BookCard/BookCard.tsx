@@ -28,7 +28,7 @@ export function BookCard({
       as="article"
       direction="row"
       align="stretch"
-      gap="20px"
+      gap="5"
       w="full"
       bg="bg"
       borderWidth="1px"
@@ -42,14 +42,13 @@ export function BookCard({
         display="flex"
         flexDirection="column"
         justifyContent="center"
-        gap="10px"
-        p="24px"
+        gap="2.5"
+        p="6"
         flex="1"
       >
         {/* 作品名 */}
         <Text
-          fontFamily="'Noto Sans JP', sans-serif"
-          fontSize="18px"
+          fontSize="md"
           fontWeight="400"
           lineHeight="28px"
           color="fg"
@@ -60,8 +59,7 @@ export function BookCard({
         {/* 著者名 */}
         {work.author && (
           <Text
-            fontFamily="'Noto Sans JP', sans-serif"
-            fontSize="14px"
+            fontSize="xs"
             fontWeight="600"
             lineHeight="20px"
             color="fg"
@@ -74,8 +72,7 @@ export function BookCard({
         {/* 底本初版発行年 */}
         {work.firstPublishedYear && (
           <Text
-            fontFamily="'Noto Sans JP', sans-serif"
-            fontSize="14px"
+            fontSize="xs"
             fontWeight="600"
             lineHeight="20px"
             color="fg"
@@ -90,12 +87,12 @@ export function BookCard({
           direction="row"
           justify="flex-start"
           align="center"
-          gap="8px"
-          h="40px"
+          gap="2"
+          h="10"
         >
           {work.writingStyle && (
             <Badge
-              fontSize="12px"
+              fontSize="2xs"
               fontWeight="600"
               lineHeight="16px"
               color="gray.800"
@@ -103,8 +100,8 @@ export function BookCard({
               borderWidth="1px"
               bg="transparent"
               boxShadow="none"
-              px="6px"
-              h="20px"
+              px="1.5"
+              h="5"
               display="flex"
               alignItems="center"
             >
@@ -113,7 +110,7 @@ export function BookCard({
           )}
           {work.publisher && (
             <Badge
-              fontSize="12px"
+              fontSize="2xs"
               fontWeight="600"
               lineHeight="16px"
               color="gray.800"
@@ -121,8 +118,8 @@ export function BookCard({
               borderWidth="1px"
               bg="transparent"
               boxShadow="none"
-              px="6px"
-              h="20px"
+              px="1.5"
+              h="5"
               display="flex"
               alignItems="center"
             >

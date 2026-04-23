@@ -15,11 +15,11 @@ export function TopEmptyState({ onSearchClick }: TopEmptyStateProps) {
     <Flex
       direction="column"
       align="center"
-      gap="24px"
-      p="24px 16px"
+      gap="6"
+      p="6 4"
       bg="bg"
       borderWidth="1px"
-      borderColor="gray.800"
+      borderColor="border"
       w="full"
     >
       <Box color="fg">
@@ -27,8 +27,7 @@ export function TopEmptyState({ onSearchClick }: TopEmptyStateProps) {
       </Box>
 
       <Text
-        fontFamily="'Noto Sans JP', sans-serif"
-        fontSize="16px"
+        fontSize="sm"
         fontWeight="800"
         lineHeight="24px"
         color="fg"
@@ -39,8 +38,7 @@ export function TopEmptyState({ onSearchClick }: TopEmptyStateProps) {
       </Text>
 
       <Text
-        fontFamily="'Noto Sans JP', sans-serif"
-        fontSize="14px"
+        fontSize="xs"
         fontWeight="600"
         lineHeight="20px"
         color="fg.muted"
@@ -53,13 +51,12 @@ export function TopEmptyState({ onSearchClick }: TopEmptyStateProps) {
       <Button
         variant="solid"
         bg="gray.900"
-        color="white"
-        h="36px"
-        px="14px"
-        gap="8px"
+        color="fg.inverted"
+        h="9"
+        px="3.5"
+        gap="2"
         onClick={onSearchClick}
-        fontFamily="'Noto Sans JP', sans-serif"
-        fontSize="14px"
+        fontSize="xs"
         fontWeight="700"
         aria-label="作品を検索する"
       >

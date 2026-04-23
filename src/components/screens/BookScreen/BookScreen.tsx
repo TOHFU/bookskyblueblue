@@ -185,7 +185,7 @@ export function BookScreen({ identifier }: BookScreenProps) {
       as="main"
       w="full"
       h="100svh"
-      bg="#16AEFA"
+      bg="bg"
       position="relative"
       overflow="hidden"
     >
@@ -228,7 +228,7 @@ export function BookScreen({ identifier }: BookScreenProps) {
         bottom="2em"
         {...(isOddPageNumber ? { right: "2em" } : { left: "2em" })}
         fontFamily="'Noto Serif JP', serif"
-        fontSize="16px"
+        fontSize="sm"
         fontWeight="700"
         lineHeight="18px"
         color="fg"
@@ -288,9 +288,9 @@ export function BookScreen({ identifier }: BookScreenProps) {
             aria-label="次のページ"
             variant="solid"
             bg="gray.900"
-            color="white"
-            w="44px"
-            h="44px"
+            color="fg.inverted"
+            w="11"
+            h="11"
             onClick={handleNextPage}
             disabled={currentPage >= pageCount - 1}
           >
@@ -302,9 +302,9 @@ export function BookScreen({ identifier }: BookScreenProps) {
             aria-label="TOPに戻る"
             variant="solid"
             bg="gray.900"
-            color="white"
-            w="44px"
-            h="44px"
+            color="fg.inverted"
+            w="11"
+            h="11"
             onClick={handleClose}
           >
             <X size={20} />
@@ -315,9 +315,9 @@ export function BookScreen({ identifier }: BookScreenProps) {
             aria-label="前のページ"
             variant="solid"
             bg="gray.900"
-            color="white"
-            w="44px"
-            h="44px"
+            color="fg.inverted"
+            w="11"
+            h="11"
             onClick={handlePrevPage}
             disabled={currentPage <= 0}
           >
