@@ -15,7 +15,7 @@ type WorkDetailCardProps = {
  */
 export function WorkDetailCard({ work, onDownload }: WorkDetailCardProps) {
   return (
-    <Box bg="bg" borderWidth="1px" borderColor="border" w="full">
+    <Box bg="bg" borderWidth="2px" borderColor="border" w="full">
       <Flex direction="column" justify="center" gap="2.5" p="6">
         {/* 作品ID */}
         {work.id && (
