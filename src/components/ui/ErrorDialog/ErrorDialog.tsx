@@ -54,7 +54,7 @@ export function ErrorDialog({
               <Dialog.Title
                 fontSize="md"
                 fontWeight="400"
-                lineHeight="28px"
+                lineHeight="7"
                 color="fg"
               >
                 エラーが発生しました
@@ -66,7 +66,7 @@ export function ErrorDialog({
               <Text
                 fontSize="xs"
                 fontWeight="600"
-                lineHeight="20px"
+                lineHeight="5"
                 color="fg.muted"
               >
                 {message}
