@@ -36,58 +36,55 @@ export function ErrorDialog({
               position="absolute"
               top="0"
               right="0"
-              w="40px"
-              h="40px"
+              w="10"
+              h="10"
               display="flex"
               alignItems="center"
               justifyContent="center"
               aria-label="ダイアログを閉じる"
               asChild
             >
-              <Button variant="ghost" size="md" p="0" minW="40px" h="40px">
+              <Button variant="ghost" size="md" p="0" minW="10" h="10">
                 ✕
               </Button>
             </Dialog.CloseTrigger>
 
             {/* ヘッダー */}
-            <Dialog.Header px="24px" pt="24px" pb="16px">
+            <Dialog.Header px="6" pt="6" pb="4">
               <Dialog.Title
-                fontFamily="'Noto Sans JP', sans-serif"
-                fontSize="18px"
+                fontSize="md"
                 fontWeight="400"
                 lineHeight="28px"
-                color="#012639"
+                color="fg"
               >
                 エラーが発生しました
               </Dialog.Title>
             </Dialog.Header>
 
             {/* ボディ */}
-            <Dialog.Body px="24px" pt="8px" pb="16px">
+            <Dialog.Body px="6" pt="2" pb="4">
               <Text
-                fontFamily="'Noto Sans JP', sans-serif"
-                fontSize="14px"
+                fontSize="xs"
                 fontWeight="600"
                 lineHeight="20px"
-                color="#134152"
+                color="fg.muted"
               >
                 {message}
               </Text>
             </Dialog.Body>
 
             {/* フッター */}
-            <Dialog.Footer px="24px" pt="8px" pb="16px">
+            <Dialog.Footer px="6" pt="2" pb="4">
               <Flex justify="flex-end" align="center" w="full">
                 <Button
                   variant="solid"
                   size="md"
-                  bg="#18181B"
-                  color="white"
-                  px="16px"
-                  h="40px"
+                  bg="gray.900"
+                  color="fg.inverted"
+                  px="4"
+                  h="10"
                   onClick={onClose}
-                  fontFamily="'Noto Sans JP', sans-serif"
-                  fontSize="14px"
+                  fontSize="xs"
                 >
                   閉じる
                 </Button>

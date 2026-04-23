@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, Flex, IconButton } from "@chakra-ui/react";
+import { Box, IconButton } from "@chakra-ui/react";
 import { ArrowRight, X } from "lucide-react";
 import type { Work } from "@/domain/entities/work";
 
@@ -28,7 +28,7 @@ export function BookCardActionButtons({
       alignItems="flex-end"
       alignSelf="stretch"
       flexShrink={0}
-      minW="32px"
+      minW="8"
     >
       {showDeleteButton && (
         <IconButton
@@ -37,8 +37,8 @@ export function BookCardActionButtons({
           size="xs"
           borderColor="border"
           color="fg"
-          w="32px"
-          h="32px"
+          w="8"
+          h="8"
           position="absolute"
           top="-1px"
           right="-1px"
@@ -54,8 +54,8 @@ export function BookCardActionButtons({
           size="xs"
           borderColor="border"
           color="fg"
-          w="32px"
-          h="32px"
+          w="8"
+          h="8"
           position="relative"
           bottom="-1px"
           right="-1px"

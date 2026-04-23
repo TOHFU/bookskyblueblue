@@ -55,10 +55,10 @@ export function SearchDetailScreen({ work }: SearchDetailScreenProps) {
         rightSlot={
           <Button
             variant="solid"
-            w="44px"
-            h="44px"
+            w="11"
+            h="11"
             bg="gray.900"
-            color="white"
+            color="fg.inverted"
             onClick={handleClose}
             p="0"
             aria-label="TOPに戻る"
@@ -72,8 +72,8 @@ export function SearchDetailScreen({ work }: SearchDetailScreenProps) {
       <Flex
         direction="column"
         align="stretch"
-        gap="24px"
-        p="24px"
+        gap="6"
+        p="6"
         w="full"
         position="relative"
         zIndex={1}
@@ -83,13 +83,12 @@ export function SearchDetailScreen({ work }: SearchDetailScreenProps) {
           variant="solid"
           size="md"
           bg="gray.900"
-          color="white"
-          h="40px"
-          px="16px"
+          color="fg.inverted"
+          h="10"
+          px="4"
           onClick={handleBack}
           alignSelf="flex-start"
-          fontFamily="'Noto Sans JP', sans-serif"
-          fontSize="14px"
+          fontSize="xs"
           aria-label="検索結果に戻る"
         >
           <ArrowLeft size={16} />
