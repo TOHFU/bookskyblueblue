@@ -78,8 +78,10 @@ export function DownloadScreen({ identifier }: DownloadScreenProps) {
       flexDirection="column"
       justifyContent="center"
       alignItems="stretch"
-      gap="7.5"
-      p="8 8 20"
+      gap="7"
+      pt="8"
+      px="8"
+      pb="20"
       mx="auto"
     >
       {status === "error" ? (
