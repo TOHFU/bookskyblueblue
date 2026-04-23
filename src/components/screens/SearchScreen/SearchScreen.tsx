@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { X, Search, RotateCw } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { BookCard } from "@/components/ui/BookCard";
+import { AppToolbar } from "@/components/ui/AppToolbar";
 import { SearchEmptyState } from "./SearchEmptyState";
 import type { Work } from "@/domain/entities/work";
 
@@ -100,28 +101,21 @@ export function SearchScreen() {
       />
 
       {/* ツールバー */}
-      <Flex
-        as="header"
-        direction="row"
-        justify="flex-end"
-        align="center"
-        w="full"
-        h="44px"
-        position="relative"
-        zIndex={1}
-      >
-        <IconButton
-          aria-label="TOPに戻る"
-          variant="solid"
-          w="44px"
-          h="44px"
-          bg="gray.900"
-          color="white"
-          onClick={() => router.push("/")}
-        >
-          <X size={20} />
-        </IconButton>
-      </Flex>
+      <AppToolbar
+        rightSlot={
+          <IconButton
+            aria-label="TOPに戻る"
+            variant="solid"
+            w="44px"
+            h="44px"
+            bg="gray.900"
+            color="white"
+            onClick={() => router.push("/")}
+          >
+            <X size={20} />
+          </IconButton>
+        }
+      />
 
       {/* コンテンツエリア */}
       <Flex direction="column" align="stretch" gap="24px" p="24px" w="full" position="relative" zIndex={1}>
