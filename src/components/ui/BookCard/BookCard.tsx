@@ -108,7 +108,7 @@ export function BookCard({
               display="flex"
               alignItems="center"
             >
-              {work.writingStyle}
+              {work.writingStyle.length > 6 ? work.writingStyle.slice(0, 6) + "…" : work.writingStyle}
             </Badge>
           )}
           {work.publisher && (
