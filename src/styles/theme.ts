@@ -77,9 +77,9 @@ const buttonRecipe = defineRecipe({
         bg: "bg",
         color: "fg.inverted",
         borderWidth: "1px",
-        borderColor: "bg",
-        _hover: { bg: "interactive.hover", borderColor: "interactive.hover" },
-        _active: { bg: "interactive.active", borderColor: "interactive.active" },
+        borderColor: "transparent",
+        _hover: { bg: "interactive.hover", borderColor: "transparent" },
+        _active: { bg: "interactive.active", borderColor: "transparent" },
       },
       subtle: {
         bg: "bg.subtle",
