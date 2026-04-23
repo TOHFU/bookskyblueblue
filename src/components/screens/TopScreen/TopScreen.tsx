@@ -103,7 +103,7 @@ export function TopScreen() {
 
       {/* コンテンツエリア（IndexedDB ロード完了後にフェードイン） */}
       <Box
-        p="24px"
+        p="6"
         w="full"
         position="relative"
         zIndex={1}

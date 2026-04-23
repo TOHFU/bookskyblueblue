@@ -237,6 +237,13 @@ const config = defineConfig({
         "2xl": { value: "2rem" },
         "4xl": { value: "4rem" },
       },
+      lineHeights: {
+        "3.5": { value: "0.875rem" },
+        "4": { value: "1rem" },
+        "5": { value: "1.25rem" },
+        "6": { value: "1.5rem" },
+        "7": { value: "1.75rem" },
+      },
       radii: {
         "2xs": { value: "1px" },
         xs: { value: "2px" },

@@ -87,7 +87,7 @@ export function DownloadScreen({ identifier }: DownloadScreenProps) {
           <Text
             fontSize="xs"
             fontWeight="600"
-            lineHeight="20px"
+            lineHeight="5"
             color="fg"
             textAlign="center"
           >
@@ -99,7 +99,7 @@ export function DownloadScreen({ identifier }: DownloadScreenProps) {
           <Text
             fontSize="3xs"
             fontWeight="600"
-            lineHeight="14px"
+            lineHeight="3.5"
             color="fg"
             textAlign="center"
             w="full"

@@ -50,7 +50,7 @@ export function BookCard({
         <Text
           fontSize="md"
           fontWeight="400"
-          lineHeight="28px"
+          lineHeight="7"
           color="fg"
         >
           {work.title}
@@ -61,7 +61,7 @@ export function BookCard({
           <Text
             fontSize="xs"
             fontWeight="600"
-            lineHeight="20px"
+            lineHeight="5"
             color="fg"
             w="full"
           >
@@ -74,7 +74,7 @@ export function BookCard({
           <Text
             fontSize="xs"
             fontWeight="600"
-            lineHeight="20px"
+            lineHeight="5"
             color="fg"
             w="full"
           >
