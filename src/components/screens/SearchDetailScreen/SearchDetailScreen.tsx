@@ -96,7 +96,9 @@ export function SearchDetailScreen({ work }: SearchDetailScreenProps) {
         </Button>
 
         {/* 作品詳細カード */}
-        <WorkDetailCard work={work} onDownload={handleDownload} />
+        <Box className="detail-card-fadein">
+          <WorkDetailCard work={work} onDownload={handleDownload} />
+        </Box>
       </Flex>
     </Box>
   );
