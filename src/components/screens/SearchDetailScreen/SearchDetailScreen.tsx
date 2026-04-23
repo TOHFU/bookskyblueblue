@@ -201,7 +201,7 @@ export function SearchDetailScreen({ work }: SearchDetailScreenProps) {
                   px="6px"
                   h="20px"
                 >
-                  {work.writingStyle}
+                  {work.writingStyle.length > 6 ? work.writingStyle.slice(0, 6) + "…" : work.writingStyle}
                 </Badge>
               )}
               {work.publisher && (
@@ -217,7 +217,7 @@ export function SearchDetailScreen({ work }: SearchDetailScreenProps) {
                   px="6px"
                   h="20px"
                 >
-                  {work.publisher}
+                  {work.publisher.length > 6 ? work.publisher.slice(0, 6) + "…" : work.publisher}
                 </Badge>
               )}
             </Flex>
