@@ -17,13 +17,14 @@ import type { Work } from "@/domain/entities/work";
 export function TopScreen() {
   const router = useRouter();
   const [works, setWorks] = useState<Work[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [deleteTarget, setDeleteTarget] = useState<Work | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
-  const loadWorks = useCallback(() => {
-    getSavedWorks().then((saved) => {
-      setWorks(saved);
-    });
+  const loadWorks = useCallback(async () => {
+    const saved = await getSavedWorks();
+    setWorks(saved);
+    setIsLoading(false);
   }, []);
 
   useEffect(() => {
@@ -107,9 +108,16 @@ export function TopScreen() {
         </IconButton>
       </Flex>
 
-      {/* コンテンツエリア */}
-      <Box p="24px" w="full" position="relative" zIndex={1}>
-        {works.length === 0 ? (
+      {/* コンテンツエリア（IndexedDB ロード完了後にフェードイン） */}
+      <Box
+        p="24px"
+        w="full"
+        position="relative"
+        zIndex={1}
+        className={isLoading ? undefined : "top-content-fadein"}
+        style={{ opacity: isLoading ? 0 : undefined }}
+      >
+        {!isLoading && works.length === 0 ? (
           <TopEmptyState onSearchClick={handleSearchClick} />
         ) : (
           <Flex
