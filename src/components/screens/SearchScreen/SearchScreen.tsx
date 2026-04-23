@@ -117,7 +117,7 @@ export function SearchScreen() {
     <Box as="main" minH="100svh" bg="bg" position="relative">
       {/* 背景画像 */}
       <Box
-        position="absolute"
+        position="fixed"
         top="0"
         left="0"
         w="full"
