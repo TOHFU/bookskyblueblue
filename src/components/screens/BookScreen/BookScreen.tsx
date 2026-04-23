@@ -72,6 +72,7 @@ export function BookScreen({ identifier }: BookScreenProps) {
   const [pageCount, setPageCount] = useState(1);
   const [contentAreaWidth, setContentAreaWidth] = useState(0);
   const [controlsVisible, setControlsVisible] = useState(true);
+  const [isReady, setIsReady] = useState(false);
   const fadeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const contentAreaRef = useRef<HTMLDivElement>(null);
@@ -94,12 +95,14 @@ export function BookScreen({ identifier }: BookScreenProps) {
       const work = await getWork(identifier);
       if (!work?.content) {
         setHtmlContent("");
+        setIsReady(true);
         return;
       }
       const content = extractMainContent(work.content);
       setHtmlContent(content);
       const savedPage = await getReadingPosition(identifier);
       setCurrentPage(savedPage);
+      setIsReady(true);
     };
 
     loadWork();
@@ -201,21 +204,34 @@ export function BookScreen({ identifier }: BookScreenProps) {
         bottom="5em"
         overflow="hidden"
       >
-        {htmlContent === null ? (
-          <Flex w="full" h="full" align="center" justify="center">
+        {/* ローディング中またはレイアウト計算中はSpinnerを表示 */}
+        {!isReady && (
+          <Flex
+            w="full"
+            h="full"
+            align="center"
+            justify="center"
+            position="absolute"
+            top="0"
+            left="0"
+          >
             <Spinner color="fg" />
           </Flex>
-        ) : (
+        )}
+
+        {/* コンテンツ: htmlContent設定後は常にDOMに存在させてcalcLayoutを機能させる */}
+        {htmlContent !== null && (
           <Box
             ref={innerRef}
-            className="book-content"
+            className={isReady ? "book-content book-content-fadein" : "book-content"}
             position="absolute"
             right="0"
             top="0"
             h="full"
             style={{
+              opacity: isReady ? undefined : 0,
               transform: `translateX(${currentPage * contentAreaWidth}px)`,
-              transition: "transform 0.3s ease",
+              transition: isReady ? "transform 0.3s ease" : "none",
             }}
             dangerouslySetInnerHTML={{ __html: htmlContent }}
           />
