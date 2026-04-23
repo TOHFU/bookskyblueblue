@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, Flex, IconButton, Spinner, Text } from "@chakra-ui/react";
+import { Box, Flex, IconButton, Text } from "@chakra-ui/react";
 import { useRouter } from "next/navigation";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -204,7 +204,7 @@ export function BookScreen({ identifier }: BookScreenProps) {
         bottom="5em"
         overflow="hidden"
       >
-        {/* ローディング中またはレイアウト計算中はSpinnerを表示 */}
+        {/* ローディング中またはレイアウト計算中はローディングアイコンを表示 */}
         {!isReady && (
           <Flex
             w="full"
@@ -215,7 +215,9 @@ export function BookScreen({ identifier }: BookScreenProps) {
             top="0"
             left="0"
           >
-            <Spinner color="fg" />
+            <Box as="span" className="search-loading-icon" color="fg">
+              <img src="/icons/rotate-cw.svg" alt="ローディング" width={24} height={24} />
+            </Box>
           </Flex>
         )}
 
