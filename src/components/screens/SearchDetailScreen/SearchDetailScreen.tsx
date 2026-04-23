@@ -31,7 +31,7 @@ export function SearchDetailScreen({ work }: SearchDetailScreenProps) {
   };
 
   return (
-    <Box as="main" minH="100svh" bg="#16AEFA" position="relative">
+    <Box as="main" minH="100svh" bg="bg" position="relative">
       {/* 背景画像 */}
       <Box
         position="absolute"
@@ -63,7 +63,7 @@ export function SearchDetailScreen({ work }: SearchDetailScreenProps) {
           variant="solid"
           w="44px"
           h="44px"
-          bg="#18181B"
+          bg="gray.900"
           color="white"
           onClick={handleClose}
           p="0"
@@ -79,7 +79,7 @@ export function SearchDetailScreen({ work }: SearchDetailScreenProps) {
         <Button
           variant="solid"
           size="md"
-          bg="#18181B"
+          bg="gray.900"
           color="white"
           h="40px"
           px="16px"
@@ -95,9 +95,9 @@ export function SearchDetailScreen({ work }: SearchDetailScreenProps) {
 
         {/* 作品詳細カード */}
         <Box
-          bg="#16AEFA"
+          bg="bg"
           borderWidth="1px"
-          borderColor="#012639"
+          borderColor="border"
           w="full"
         >
           <Flex
@@ -113,7 +113,7 @@ export function SearchDetailScreen({ work }: SearchDetailScreenProps) {
                 fontSize="10px"
                 fontWeight="600"
                 lineHeight="14px"
-                color="#012639"
+                color="fg"
               >
                 {work.id}
               </Text>
@@ -125,7 +125,7 @@ export function SearchDetailScreen({ work }: SearchDetailScreenProps) {
               fontSize="18px"
               fontWeight="400"
               lineHeight="28px"
-              color="#012639"
+              color="fg"
             >
               {work.title}
             </Text>
@@ -137,7 +137,7 @@ export function SearchDetailScreen({ work }: SearchDetailScreenProps) {
                 fontSize="12px"
                 fontWeight="600"
                 lineHeight="16px"
-                color="#012639"
+                color="fg"
                 w="full"
               >
                 {work.subtitle}
@@ -151,7 +151,7 @@ export function SearchDetailScreen({ work }: SearchDetailScreenProps) {
                 fontSize="12px"
                 fontWeight="600"
                 lineHeight="16px"
-                color="#012639"
+                color="fg"
                 w="full"
               >
                 {work.originalTitle}
@@ -165,7 +165,7 @@ export function SearchDetailScreen({ work }: SearchDetailScreenProps) {
                 fontSize="14px"
                 fontWeight="600"
                 lineHeight="20px"
-                color="#012639"
+                color="fg"
                 w="full"
               >
                 {work.author}
@@ -179,7 +179,7 @@ export function SearchDetailScreen({ work }: SearchDetailScreenProps) {
                 fontSize="14px"
                 fontWeight="600"
                 lineHeight="20px"
-                color="#012639"
+                color="fg"
                 w="full"
               >
                 {work.firstPublishedYear}
@@ -193,8 +193,8 @@ export function SearchDetailScreen({ work }: SearchDetailScreenProps) {
                   variant="outline"
                   fontSize="12px"
                   fontWeight="600"
-                  color="#27272A"
-                  borderColor="#012639"
+                  color="gray.800"
+                  borderColor="border"
                   borderWidth="1px"
                   bg="transparent"
                   boxShadow="none"
@@ -209,8 +209,8 @@ export function SearchDetailScreen({ work }: SearchDetailScreenProps) {
                   variant="outline"
                   fontSize="12px"
                   fontWeight="600"
-                  color="#27272A"
-                  borderColor="#012639"
+                  color="gray.800"
+                  borderColor="border"
                   borderWidth="1px"
                   bg="transparent"
                   boxShadow="none"
@@ -229,7 +229,7 @@ export function SearchDetailScreen({ work }: SearchDetailScreenProps) {
                 fontSize="14px"
                 fontWeight="400"
                 lineHeight="20px"
-                color="#012639"
+                color="fg"
                 w="full"
               >
                 {work.sourceBookName}
@@ -241,7 +241,7 @@ export function SearchDetailScreen({ work }: SearchDetailScreenProps) {
           <Flex justify="center" p="0 24px 24px">
             <Button
               variant="solid"
-              bg="#012639"
+              bg="fg"
               color="white"
               h="52px"
               px="24px"
