@@ -4,7 +4,7 @@ import "./globals.css";
 import { Providers } from "./providers";
 
 export const viewport: Viewport = {
-  themeColor: "#16AEFA",
+  themeColor: "bg",
 };
 
 export const metadata: Metadata = {

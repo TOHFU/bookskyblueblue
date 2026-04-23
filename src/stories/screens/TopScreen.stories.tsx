@@ -37,7 +37,7 @@ type TopScreenPreviewProps = {
 
 function TopScreenPreview({ works }: TopScreenPreviewProps) {
   return (
-    <Box as="main" minH="100svh" bg="#16AEFA" position="relative">
+    <Box as="main" minH="100svh" bg="bg" position="relative">
       {/* 背景画像 */}
       <Box
         position="absolute"
