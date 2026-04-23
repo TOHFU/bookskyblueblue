@@ -41,8 +41,8 @@ export function BookCardActionButtons({
           w="8"
           h="8"
           position="absolute"
-          top="-1px"
-          right="-1px"
+          top="-2px"
+          right="-2px"
           onClick={(e) => { e.stopPropagation(); onDelete?.(work); }}
         >
           <X size={16} />
@@ -59,8 +59,8 @@ export function BookCardActionButtons({
           w="8"
           h="8"
           position="relative"
-          bottom="-1px"
-          right="-1px"
+          bottom="-2px"
+          right="-2px"
           onClick={(e) => { e.stopPropagation(); onDetail?.(work); }}
         >
           <ArrowRight size={16} />
