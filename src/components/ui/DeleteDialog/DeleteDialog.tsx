@@ -43,8 +43,8 @@ export function DeleteDialog({
                   position="absolute"
                   top="0"
                   right="0"
-                  w="40px"
-                  h="40px"
+                  w="10"
+                  h="10"
                   display="flex"
                   alignItems="center"
                   justifyContent="center"
@@ -55,8 +55,8 @@ export function DeleteDialog({
                     variant="ghost"
                     size="md"
                     p="0"
-                    minW="40px"
-                    h="40px"
+                    minW="10"
+                    h="10"
                   >
                     ✕
                   </Button>
@@ -64,47 +64,44 @@ export function DeleteDialog({
 
                 {/* ヘッダー */}
                 <Dialog.Header
-                  px="24px"
-                  pt="24px"
-                  pb="16px"
+                  px="6"
+                  pt="6"
+                  pb="4"
                 >
                   <Dialog.Title
-                    fontFamily="'Noto Sans JP', sans-serif"
-                    fontSize="18px"
+                    fontSize="md"
                     fontWeight="400"
                     lineHeight="28px"
-                    color="#012639"
+                    color="fg"
                   >
                     作品の削除
                   </Dialog.Title>
                 </Dialog.Header>
 
                 {/* ボディ */}
-                <Dialog.Body px="24px" pt="8px" pb="16px">
+                <Dialog.Body px="6" pt="2" pb="4">
                   <Text
-                    fontFamily="'Noto Sans JP', sans-serif"
-                    fontSize="14px"
+                    fontSize="xs"
                     fontWeight="600"
                     lineHeight="20px"
-                    color="#134152"
+                    color="fg.muted"
                   >
                     {work.title} を削除してもよろしいですか？
                   </Text>
                 </Dialog.Body>
 
                 {/* フッター */}
-                <Dialog.Footer px="24px" pt="8px" pb="16px">
-                  <Flex justify="flex-end" align="center" gap="12px" w="full">
+                <Dialog.Footer px="6" pt="2" pb="4">
+                  <Flex justify="flex-end" align="center" gap="3" w="full">
                     <Button
                       variant="solid"
                       size="md"
-                      bg="#18181B"
-                      color="white"
-                      px="16px"
-                      h="40px"
+                      bg="gray.900"
+                      color="fg.inverted"
+                      px="4"
+                      h="10"
                       onClick={onClose}
-                      fontFamily="'Noto Sans JP', sans-serif"
-                      fontSize="14px"
+                      fontSize="xs"
                     >
                       キャンセル
                     </Button>
@@ -112,12 +109,11 @@ export function DeleteDialog({
                       variant="solid"
                       size="md"
                       bg="pink.600"
-                      color="white"
-                      px="16px"
-                      h="40px"
+                      color="fg.inverted"
+                      px="4"
+                      h="10"
                       onClick={() => onConfirm(work)}
-                      fontFamily="'Noto Sans JP', sans-serif"
-                      fontSize="14px"
+                      fontSize="xs"
                     >
                       削除
                     </Button>

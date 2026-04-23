@@ -220,13 +220,15 @@ const config = defineConfig({
     tokens: {
       fonts: {
         heading: {
-          value: 'Inter, "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif',
+          value: '"Noto Sans JP", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif',
         },
         body: {
-          value: 'Inter, "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif',
+          value: '"Noto Sans JP", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif',
         },
       },
       fontSizes: {
+        "3xs": { value: "0.625rem" },
+        "2xs": { value: "0.75rem" },
         xs: { value: "0.875rem" },
         sm: { value: "1rem" },
         md: { value: "1.125rem" },

@@ -18,12 +18,12 @@ export function SearchEmptyState({ query, onSampleClick }: SearchEmptyStateProps
     <Flex
       direction="column"
       align="center"
-      gap="16px"
-      px="16px"
-      py="24px"
+      gap="4"
+      px="4"
+      py="6"
       bg="bg"
       borderWidth="1px"
-      borderColor="gray.800"
+      borderColor="border"
       w="full"
     >
       <Box color="blue.800">
@@ -31,8 +31,7 @@ export function SearchEmptyState({ query, onSampleClick }: SearchEmptyStateProps
       </Box>
 
       <Text
-        fontFamily="'Noto Sans JP', sans-serif"
-        fontSize="16px"
+        fontSize="sm"
         fontWeight="800"
         lineHeight="24px"
         color="fg"
@@ -43,8 +42,7 @@ export function SearchEmptyState({ query, onSampleClick }: SearchEmptyStateProps
       </Text>
 
       <Text
-        fontFamily="'Noto Sans JP', sans-serif"
-        fontSize="14px"
+        fontSize="xs"
         fontWeight="600"
         lineHeight="20px"
         color="fg.muted"
@@ -56,13 +54,12 @@ export function SearchEmptyState({ query, onSampleClick }: SearchEmptyStateProps
 
       {/* サンプル検索条件 */}
       <Box w="214px">
-        <Flex direction="column" gap="4px">
+        <Flex direction="column" gap="1">
           {SAMPLE_QUERIES.map((sample) => (
             <Text
               key={sample}
               as="button"
-              fontFamily="'Noto Sans JP', sans-serif"
-              fontSize="14px"
+              fontSize="xs"
               fontWeight="600"
               lineHeight="20px"
               color="fg"

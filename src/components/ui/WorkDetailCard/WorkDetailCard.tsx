@@ -16,12 +16,11 @@ type WorkDetailCardProps = {
 export function WorkDetailCard({ work, onDownload }: WorkDetailCardProps) {
   return (
     <Box bg="bg" borderWidth="1px" borderColor="border" w="full">
-      <Flex direction="column" justify="center" gap="10px" p="24px">
+      <Flex direction="column" justify="center" gap="2.5" p="6">
         {/* 作品ID */}
         {work.id && (
           <Text
-            fontFamily="'Noto Sans JP', sans-serif"
-            fontSize="10px"
+            fontSize="3xs"
             fontWeight="600"
             lineHeight="14px"
             color="fg"
@@ -32,8 +31,7 @@ export function WorkDetailCard({ work, onDownload }: WorkDetailCardProps) {
 
         {/* 作品名 */}
         <Text
-          fontFamily="'Noto Sans JP', sans-serif"
-          fontSize="18px"
+          fontSize="md"
           fontWeight="400"
           lineHeight="28px"
           color="fg"
@@ -44,8 +42,7 @@ export function WorkDetailCard({ work, onDownload }: WorkDetailCardProps) {
         {/* サブタイトル */}
         {work.subtitle && (
           <Text
-            fontFamily="'Noto Sans JP', sans-serif"
-            fontSize="12px"
+            fontSize="2xs"
             fontWeight="600"
             lineHeight="16px"
             color="fg"
@@ -58,8 +55,7 @@ export function WorkDetailCard({ work, onDownload }: WorkDetailCardProps) {
         {/* オリジナルタイトル */}
         {work.originalTitle && (
           <Text
-            fontFamily="'Noto Sans JP', sans-serif"
-            fontSize="12px"
+            fontSize="2xs"
             fontWeight="600"
             lineHeight="16px"
             color="fg"
@@ -72,8 +68,7 @@ export function WorkDetailCard({ work, onDownload }: WorkDetailCardProps) {
         {/* 著者名 */}
         {work.author && (
           <Text
-            fontFamily="'Noto Sans JP', sans-serif"
-            fontSize="14px"
+            fontSize="xs"
             fontWeight="600"
             lineHeight="20px"
             color="fg"
@@ -86,8 +81,7 @@ export function WorkDetailCard({ work, onDownload }: WorkDetailCardProps) {
         {/* 底本初版発行年 */}
         {work.firstPublishedYear && (
           <Text
-            fontFamily="'Noto Sans JP', sans-serif"
-            fontSize="14px"
+            fontSize="xs"
             fontWeight="600"
             lineHeight="20px"
             color="fg"
@@ -98,19 +92,19 @@ export function WorkDetailCard({ work, onDownload }: WorkDetailCardProps) {
         )}
 
         {/* バッジ（文字遣い種別・出版社） */}
-        <Flex direction="row" align="center" gap="8px" flexWrap="wrap">
+        <Flex direction="row" align="center" gap="2" flexWrap="wrap">
           {work.writingStyle && (
             <Badge
               variant="outline"
-              fontSize="12px"
+              fontSize="2xs"
               fontWeight="600"
               color="gray.800"
               borderColor="border"
               borderWidth="1px"
               bg="transparent"
               boxShadow="none"
-              px="6px"
-              h="20px"
+              px="1.5"
+              h="5"
             >
               {work.writingStyle.length > 6
                 ? work.writingStyle.slice(0, 6) + "…"
@@ -120,15 +114,15 @@ export function WorkDetailCard({ work, onDownload }: WorkDetailCardProps) {
           {work.publisher && (
             <Badge
               variant="outline"
-              fontSize="12px"
+              fontSize="2xs"
               fontWeight="600"
               color="gray.800"
               borderColor="border"
               borderWidth="1px"
               bg="transparent"
               boxShadow="none"
-              px="6px"
-              h="20px"
+              px="1.5"
+              h="5"
             >
               {work.publisher.length > 6
                 ? work.publisher.slice(0, 6) + "…"
@@ -140,8 +134,7 @@ export function WorkDetailCard({ work, onDownload }: WorkDetailCardProps) {
         {/* 底本名 */}
         {work.sourceBookName && (
           <Text
-            fontFamily="'Noto Sans JP', sans-serif"
-            fontSize="14px"
+            fontSize="xs"
             fontWeight="400"
             lineHeight="20px"
             color="fg"
@@ -153,17 +146,16 @@ export function WorkDetailCard({ work, onDownload }: WorkDetailCardProps) {
       </Flex>
 
       {/* カード内フッター（ダウンロードボタン） */}
-      <Flex justify="center" p="0 24px 24px">
+      <Flex justify="center" p="0 6 6">
         <Button
           variant="solid"
           bg="fg"
-          color="white"
-          h="52px"
-          px="24px"
+          color="fg.inverted"
+          h="13"
+          px="6"
           w="full"
           onClick={() => onDownload(work)}
-          fontFamily="'Noto Sans JP', sans-serif"
-          fontSize="16px"
+          fontSize="sm"
           aria-label="この作品をダウンロードする"
         >
           <BookDown size={20} />

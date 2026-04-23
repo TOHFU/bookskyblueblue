@@ -22,7 +22,7 @@ export function AppToolbar({ leftSlot, rightSlot }: AppToolbarProps) {
       justify="space-between"
       align="center"
       w="full"
-      h="44px"
+      h="11"
       position="relative"
       zIndex={1}
     >
