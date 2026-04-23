@@ -11,6 +11,38 @@ import type { Work } from "@/domain/entities/work";
 
 const PAGE_SIZE = 10;
 
+/** ビューポートに入ったタイミングでフェードインするラッパー */
+function FadeInBox({ children }: { children: React.ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.1 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <Box
+      ref={ref}
+      className={isVisible ? "search-card-fadein" : undefined}
+      style={{ opacity: isVisible ? undefined : 0 }}
+    >
+      {children}
+    </Box>
+  );
+}
+
 /**
  * SEARCH画面のコンポーネント
  * 作品のインクリメンタルサーチとカード一覧を提供する
@@ -157,23 +189,25 @@ export function SearchScreen() {
           />
         ) : (
           <>
-            {displayedWorks.map((work, index) => (
-              <Box
-                key={work.id}
-                className="search-card-fadein"
-                style={{ animationDelay: `${index * 0.05}s` }}
-              >
+            {displayedWorks.map((work) => (
+              <FadeInBox key={work.id}>
                 <BookCard
                   work={work}
                   showDeleteButton={false}
                   showDetailButton
                   onDetail={handleDetailClick}
                 />
-              </Box>
+              </FadeInBox>
             ))}
 
-            {/* 無限スクロール用番兵 */}
-            {hasMore && <Box ref={sentinelRef} h="1px" />}
+            {/* 無限スクロール用番兵 + ローディングアイコン */}
+            {hasMore && (
+              <Flex ref={sentinelRef} justify="center" py="4">
+                <Box as="span" className="search-loading-icon" color="fg">
+                  <RotateCw size={24} />
+                </Box>
+              </Flex>
+            )}
           </>
         )}
 
