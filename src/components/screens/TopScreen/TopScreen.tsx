@@ -23,9 +23,14 @@ export function TopScreen() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const loadWorks = useCallback(async () => {
-    const saved = await getSavedWorks();
-    setWorks(saved);
-    setIsLoading(false);
+    try {
+      const saved = await getSavedWorks();
+      setWorks(saved);
+    } catch {
+      setWorks([]);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
   useEffect(() => {
