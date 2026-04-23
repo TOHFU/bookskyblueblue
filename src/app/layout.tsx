@@ -1,11 +1,24 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import "./globals.css";
 import { Providers } from "./providers";
 
+export const viewport: Viewport = {
+  themeColor: "#16AEFA",
+};
+
 export const metadata: Metadata = {
   title: "Book Sky, Blue Blue",
   description: "青空文庫の本を検索・ダウンロード・閲覧できるWebアプリ",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Book Sky, Blue Blue",
+  },
+  icons: {
+    apple: "/icons/icon-192.png",
+  },
 };
 
 type RootLayoutProps = {
