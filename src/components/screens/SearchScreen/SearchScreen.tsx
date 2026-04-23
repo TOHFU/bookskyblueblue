@@ -170,7 +170,7 @@ export function SearchScreen() {
             onChange={(e) => setQuery(e.target.value)}
             placeholder="作品名・作者名"
             bg="bg"
-            borderWidth="1px"
+            borderWidth="2px"
             borderColor="border"
             color="fg"
             h="11"

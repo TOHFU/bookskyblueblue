@@ -19,7 +19,7 @@ export function TopEmptyState({ onSearchClick }: TopEmptyStateProps) {
       py="6"
       px="4"
       bg="bg"
-      borderWidth="1px"
+      borderWidth="2px"
       borderColor="border"
       w="full"
     >
