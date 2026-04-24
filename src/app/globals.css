@@ -1,5 +1,7 @@
 :root {
   color-scheme: light;
+  --chakra-colors-bg: oklch(0.715 0.1576 239.25);
+  --time-bg-gradient: none;
 }
 
 * {
@@ -14,6 +16,12 @@ body {
 
 body {
   min-height: 100vh;
+  background-color: oklch(0.715 0.1576 239.25);
+}
+
+main {
+  background-color: oklch(0.715 0.1576 239.25) !important;
+  background-image: var(--time-bg-gradient) !important;
 }
 
 /* ========================================
