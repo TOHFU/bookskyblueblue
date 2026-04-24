@@ -42,9 +42,9 @@ export function SearchDetailScreen({ work }: SearchDetailScreenProps) {
         w="full"
         h="100svh"
         backgroundImage="url('/images/top-background.png')"
-        backgroundSize="contain"
+        backgroundSize="cover"
+        backgroundPosition="center"
         backgroundRepeat="no-repeat"
-        backgroundPosition="top"
         style={{ mixBlendMode: "multiply" }}
         zIndex={0}
         pointerEvents="none"

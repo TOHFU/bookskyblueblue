@@ -83,9 +83,9 @@ export function TopScreen() {
         w="full"
         h="100svh"
         backgroundImage="url('/images/top-background.png')"
-        backgroundSize="contain"
+        backgroundSize="cover"
+        backgroundPosition="center"
         backgroundRepeat="no-repeat"
-        backgroundPosition="top"
         style={{ mixBlendMode: "multiply" }}
         pointerEvents="none"
         aria-hidden="true"
