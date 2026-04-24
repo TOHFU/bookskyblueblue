@@ -2,13 +2,14 @@
 
 import { Box, Flex, IconButton } from "@chakra-ui/react";
 import { useRouter } from "next/navigation";
-import { Search } from "lucide-react";
+import { BadgeHelp, Search } from "lucide-react";
 import { useEffect, useState, useCallback } from "react";
 import { BookCard } from "@/components/ui/BookCard";
 import { DeleteDialog } from "@/components/ui/DeleteDialog";
 import { ErrorDialog } from "@/components/ui/ErrorDialog";
 import { AppToolbar } from "@/components/ui/AppToolbar";
 import { TopEmptyState } from "@/components/screens/TopScreen/TopEmptyState";
+import { TopFooter } from "@/components/screens/TopScreen/TopFooter";
 import { getSavedWorks, deleteWork } from "@/data/repositories/workIndexedDbRepository";
 import type { Work } from "@/domain/entities/work";
 
@@ -68,6 +69,10 @@ export function TopScreen() {
     router.push("/search");
   };
 
+  const handleHelpClick = () => {
+    router.push("/about");
+  };
+
   return (
     <Box
       as="main"
@@ -94,6 +99,19 @@ export function TopScreen() {
 
       {/* ツールバー */}
       <AppToolbar
+        leftSlot={
+          <IconButton
+            aria-label="ヘルプを開く"
+            variant="solid"
+            w="11"
+            h="11"
+            bg="gray.900"
+            color="fg.inverted"
+            onClick={handleHelpClick}
+          >
+            <BadgeHelp size={20} />
+          </IconButton>
+        }
         rightSlot={
           <IconButton
             aria-label="検索画面へ移動"
@@ -139,6 +157,8 @@ export function TopScreen() {
             ))}
           </Flex>
         )}
+
+        <TopFooter />
       </Box>
 
       {/* 削除確認ダイアログ */}
