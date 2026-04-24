@@ -1,6 +1,6 @@
 {
   "name": "Book Sky, Blue Blue",
-  "short_name": "BookSkyBlue",
+  "short_name": "BookSky,BlueBlue",
   "description": "青空文庫の本を検索・ダウンロード・閲覧できるWebアプリ",
   "start_url": "/",
   "display": "standalone",
