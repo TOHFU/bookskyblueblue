@@ -53,6 +53,13 @@ test.describe("TOP画面", () => {
     await expect(page).toHaveURL(/\/search/);
     await expect(page.getByRole("textbox", { name: "作品を検索" })).toBeVisible();
   });
+
+  test("ヘルプボタンをクリックすると ABOUT画面に遷移する", async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("button", { name: "ヘルプを開く" }).click();
+    await expect(page).toHaveURL(/\/about/);
+    await expect(page.getByText("BOOK SKY, BLUE BLUEは、")).toBeVisible();
+  });
 });
 
 // ----------------------------------------------------------------
