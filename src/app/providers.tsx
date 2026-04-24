@@ -105,12 +105,26 @@ export function Providers({ children }: ProvidersProps) {
   );
 }
 
-/** 現在時刻に基づいて --chakra-colors-bg CSS変数を動的に更新するコンポーネント */
+/** 現在時刻に基づいて --chakra-colors-bg CSS変数および body の背景を動的に更新するコンポーネント */
 function TimeBgColorApplier() {
   const color = useTimeBasedBgColor();
 
   useEffect(() => {
-    document.documentElement.style.setProperty("--chakra-colors-bg", color);
+    // 120分周期のサイン波で X 軸を ±20% ゆっくり往復させる
+    const minutesSinceEpoch = Math.floor(Date.now() / 60000);
+    const phase = ((minutesSinceEpoch % 120) / 120) * 2 * Math.PI;
+    const xOffset = Math.sin(phase) * 20;
+
+    const x1 = (80 + xOffset).toFixed(1);
+    const x2 = (0 + xOffset).toFixed(1);
+    const x3 = (80 + xOffset).toFixed(1);
+
+    const gradient = [
+      `radial-gradient(at ${x1}% 50%, ${color} 0px, transparent 50%)`,
+      `radial-gradient(at ${x2}% 100%, ${color} 0px, transparent 50%)`,
+      `radial-gradient(at ${x3}% 100%, ${color} 0px, transparent 50%)`,
+    ].join(", ");
+    document.documentElement.style.setProperty("--time-bg-gradient", gradient);
   }, [color]);
 
   return null;
