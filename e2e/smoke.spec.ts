@@ -38,7 +38,7 @@ test.describe("TOP画面", () => {
     await page.goto("/");
     // 検索ボタンが表示されれば TOP 画面がレンダリングされている
     await expect(
-      page.getByRole("button", { name: "検索画面へ移動" }),
+      page.getByRole("button", { name: "検索画面へ移動" }).first(),
     ).toBeVisible({ timeout: 10000 });
   });
 
@@ -49,7 +49,7 @@ test.describe("TOP画面", () => {
 
   test("検索ボタンをクリックすると SEARCH画面に遷移する", async ({ page }) => {
     await page.goto("/");
-    await page.getByRole("button", { name: "検索画面へ移動" }).click();
+    await page.getByRole("button", { name: "検索画面へ移動" }).first().click();
     await expect(page).toHaveURL(/\/search/);
     await expect(page.getByRole("textbox", { name: "作品を検索" })).toBeVisible();
   });

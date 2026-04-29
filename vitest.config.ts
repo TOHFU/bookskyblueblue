@@ -5,10 +5,16 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "@tests": path.resolve(__dirname, "./tests"),
     },
   },
   test: {
     environment: "jsdom",
+    environmentOptions: {
+      jsdom: {
+        url: "http://localhost",
+      },
+    },
     globals: true,
     setupFiles: ["./vitest.setup.ts"],
     coverage: {
