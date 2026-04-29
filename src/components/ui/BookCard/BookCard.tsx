@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Box, Flex, Text, Badge } from "@chakra-ui/react";
 import { BookCardActionButtons } from "./BookCardActionButtons";
 import type { Work } from "@/domain/entities/work";
@@ -14,6 +15,10 @@ type BookCardProps = {
   onDelete?: (work: Work) => void;
   /** 詳細ボタンクリック時のハンドラ */
   onDetail?: (work: Work) => void;
+  /** 現在の閲覧ページ（0始まりのインデックス） */
+  readingPage?: number;
+  /** 作品の総ページ数 */
+  totalPages?: number;
 };
 
 export function BookCard({
@@ -22,7 +27,18 @@ export function BookCard({
   showDetailButton = true,
   onDelete,
   onDetail,
+  readingPage,
+  totalPages,
 }: BookCardProps) {
+  const [isPressed, setIsPressed] = useState(false);
+
+  /** 進行ページ数の表示ラベルを返す */
+  function getProgressLabel(page: number, total: number): string {
+    if (page <= 0) return "未読";
+    if (total > 0 && page >= total - 1) return "読了";
+    return `${page + 1}ページ`;
+  }
+
   return (
     <Flex
       as="article"
@@ -34,7 +50,15 @@ export function BookCard({
       borderWidth="2px"
       borderColor="border"
       aria-label={`作品: ${work.title}`}
+      transform={isPressed ? "translate(4px, 4px)" : "translate(0, 0)"}
+      transition="transform 0.12s ease-out"
       onClick={onDetail ? () => onDetail(work) : undefined}
+      onTouchStart={() => setIsPressed(true)}
+      onTouchEnd={() => setIsPressed(false)}
+      onTouchCancel={() => setIsPressed(false)}
+      onMouseDown={() => setIsPressed(true)}
+      onMouseUp={() => setIsPressed(false)}
+      onMouseLeave={() => setIsPressed(false)}
       cursor={onDetail ? "pointer" : undefined}
     >
       {/* 本文情報エリア */}
@@ -127,6 +151,19 @@ export function BookCard({
             </Badge>
           )}
         </Flex>
+
+        {/* 進行ページ数 */}
+        {readingPage !== undefined && (
+          <Text
+            fontSize="2xs"
+            fontWeight="600"
+            lineHeight="4"
+            color="fg"
+            w="full"
+          >
+            {getProgressLabel(readingPage, totalPages ?? 0)}
+          </Text>
+        )}
       </Box>
 
       {/* アクションボタンエリア */}
