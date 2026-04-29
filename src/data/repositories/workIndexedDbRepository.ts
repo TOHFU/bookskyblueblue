@@ -74,10 +74,11 @@ export async function getWork(id: string): Promise<Work | null> {
   });
 }
 
-/** 閲覧位置を保存 */
+/** 閲覧位置と総ページ数を保存 */
 export async function saveReadingPosition(
   workId: string,
-  page: number
+  page: number,
+  totalPages: number
 ): Promise<void> {
   const work = await getWork(workId);
   if (!work) return;
@@ -86,7 +87,7 @@ export async function saveReadingPosition(
     const tx = db.transaction(STORE_WORKS, "readwrite");
     const request = tx
       .objectStore(STORE_WORKS)
-      .put({ ...work, _readingPage: page });
+      .put({ ...work, _readingPage: page, _totalPages: totalPages });
     request.onsuccess = () => resolve();
     request.onerror = () => reject(request.error);
   });
@@ -101,6 +102,25 @@ export async function getReadingPosition(workId: string): Promise<number> {
     request.onsuccess = () => {
       const data = request.result as Record<string, unknown> | undefined;
       resolve(typeof data?._readingPage === "number" ? data._readingPage : 0);
+    };
+    request.onerror = () => reject(request.error);
+  });
+}
+
+/** 閲覧位置と総ページ数を取得 */
+export async function getReadingProgress(
+  workId: string
+): Promise<{ page: number; totalPages: number }> {
+  const db = await openDatabase();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_WORKS, "readonly");
+    const request = tx.objectStore(STORE_WORKS).get(workId);
+    request.onsuccess = () => {
+      const data = request.result as Record<string, unknown> | undefined;
+      resolve({
+        page: typeof data?._readingPage === "number" ? data._readingPage : 0,
+        totalPages: typeof data?._totalPages === "number" ? data._totalPages : 0,
+      });
     };
     request.onerror = () => reject(request.error);
   });
