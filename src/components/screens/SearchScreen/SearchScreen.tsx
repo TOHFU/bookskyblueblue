@@ -173,10 +173,10 @@ export function SearchScreen() {
             borderWidth="2px"
             borderColor="border"
             color="fg"
-            h="12"
+            h="16"
             pl="11"
             pr="5"
-            fontSize="md"
+            fontSize="lg"
             fontWeight="600"
             _placeholder={{ color: "blue.800", opacity: 0.7 }}
             aria-label="作品を検索"

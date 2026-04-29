@@ -36,10 +36,6 @@
     ".next/dev/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules",
-    "vitest.setup.ts",
-    "vitest.config.ts",
-    "tests/**",
-    "e2e/**"
+    "node_modules"
   ]
 }
