@@ -10,7 +10,7 @@ import { ErrorDialog } from "@/components/ui/ErrorDialog";
 import { AppToolbar } from "@/components/ui/AppToolbar";
 import { TopEmptyState } from "@/components/screens/TopScreen/TopEmptyState";
 import { TopFooter } from "@/components/screens/TopScreen/TopFooter";
-import { getSavedWorks, deleteWork } from "@/data/repositories/workIndexedDbRepository";
+import { getSavedWorks, deleteWork, getReadingProgress } from "@/data/repositories/workIndexedDbRepository";
 import type { Work } from "@/domain/entities/work";
 
 /**
@@ -21,6 +21,7 @@ export function TopScreen() {
   const router = useRouter();
   const [works, setWorks] = useState<Work[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [progressMap, setProgressMap] = useState<Record<string, { page: number; totalPages: number }>>({});
   const [deleteTarget, setDeleteTarget] = useState<Work | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isErrorDialogOpen, setIsErrorDialogOpen] = useState(false);
@@ -29,6 +30,15 @@ export function TopScreen() {
     try {
       const saved = await getSavedWorks();
       setWorks(saved);
+      const entries = await Promise.all(
+        saved
+          .filter((w) => w.id)
+          .map(async (w) => {
+            const progress = await getReadingProgress(w.id!);
+            return [w.id!, progress] as const;
+          })
+      );
+      setProgressMap(Object.fromEntries(entries));
     } catch {
       setWorks([]);
       setIsErrorDialogOpen(true);
@@ -145,16 +155,21 @@ export function TopScreen() {
             gap="6"
             w="full"
           >
-            {works.map((work) => (
-              <BookCard
-                key={work.id}
-                work={work}
-                showDeleteButton
-                showDetailButton
-                onDelete={handleDeleteClick}
-                onDetail={handleDetailClick}
-              />
-            ))}
+            {works.map((work) => {
+              const progress = work.id ? progressMap[work.id] : undefined;
+              return (
+                <BookCard
+                  key={work.id}
+                  work={work}
+                  showDeleteButton
+                  showDetailButton
+                  onDelete={handleDeleteClick}
+                  onDetail={handleDetailClick}
+                  readingPage={progress?.page}
+                  totalPages={progress?.totalPages}
+                />
+              );
+            })}
           </Flex>
         )}
 
@@ -174,6 +189,23 @@ export function TopScreen() {
         onClose={handleDeleteCancel}
         onConfirm={handleDeleteConfirm}
       />
+
+      {/* FAB: 検索ボタン */}
+      <IconButton
+        aria-label="検索画面へ移動"
+        position="fixed"
+        bottom="6"
+        right="6"
+        w="20"
+        h="12"
+        style={{ borderRadius: "9999px" }}
+        bg="gray.900"
+        color="fg.inverted"
+        zIndex={10}
+        onClick={handleSearchClick}
+      >
+        <Search size={20} />
+      </IconButton>
     </Box>
   );
 }
