@@ -137,6 +137,11 @@ main {
   margin: 0;
 }
 
+/* XHTMLのインラインstyleによるfont-size上書きをリセット（青空文庫のfont-size: smallなど） */
+.book-content * {
+  font-size: 16px !important;
+}
+
 /*
   ルビ：縦書きでは ruby-position: over = 文字の右側に配置。
   line-height を 0 にしてルビ自身による追加スペースを抑制し、
@@ -148,7 +153,7 @@ main {
 }
 
 .book-content rt {
-  font-size: 8px;
+  font-size: 8px !important;
   line-height: 1;
 }
 

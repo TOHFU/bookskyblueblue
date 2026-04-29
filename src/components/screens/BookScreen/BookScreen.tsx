@@ -167,7 +167,7 @@ export function BookScreen({ identifier }: BookScreenProps) {
     if (currentPage <= 0) return;
     const newPage = currentPage - 1;
     setCurrentPage(newPage);
-    void saveReadingPosition(identifier, newPage);
+    void saveReadingPosition(identifier, newPage, pageCount);
   };
 
   const handleNextPage = () => {
@@ -175,7 +175,7 @@ export function BookScreen({ identifier }: BookScreenProps) {
     if (currentPage >= pageCount - 1) return;
     const newPage = currentPage + 1;
     setCurrentPage(newPage);
-    void saveReadingPosition(identifier, newPage);
+    void saveReadingPosition(identifier, newPage, pageCount);
   };
 
   const handleClose = () => {
