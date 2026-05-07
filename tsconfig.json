@@ -22,9 +22,16 @@
         "name": "next"
       }
     ],
+    "types": [
+      "vitest/globals",
+      "@testing-library/jest-dom"
+    ],
     "paths": {
       "@/*": [
         "./src/*"
+      ],
+      "@tests/*": [
+        "./tests/*"
       ]
     }
   },
