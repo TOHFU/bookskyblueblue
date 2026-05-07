@@ -1,87 +1,35 @@
 "use client";
 
 import { Box, Flex, IconButton } from "@chakra-ui/react";
-import { useRouter } from "next/navigation";
 import { BadgeHelp, Search } from "lucide-react";
-import { useEffect, useState, useCallback } from "react";
 import { BookCard } from "@/components/ui/BookCard";
 import { DeleteDialog } from "@/components/ui/DeleteDialog";
 import { ErrorDialog } from "@/components/ui/ErrorDialog";
 import { AppToolbar } from "@/components/ui/AppToolbar";
 import { TopEmptyState } from "@/components/screens/TopScreen/TopEmptyState";
 import { TopFooter } from "@/components/screens/TopScreen/TopFooter";
-import { getSavedWorks, deleteWork, getReadingProgress } from "@/data/repositories/workIndexedDbRepository";
-import type { Work } from "@/domain/entities/work";
+import { useTopScreen } from "@/hooks/screens/useTopScreen";
 
 /**
  * TOP画面のコンポーネント
  * 保存済み作品一覧と削除機能を提供する
  */
 export function TopScreen() {
-  const router = useRouter();
-  const [works, setWorks] = useState<Work[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [progressMap, setProgressMap] = useState<Record<string, { page: number; totalPages: number }>>({});
-  const [deleteTarget, setDeleteTarget] = useState<Work | null>(null);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [isErrorDialogOpen, setIsErrorDialogOpen] = useState(false);
-
-  const loadWorks = useCallback(async () => {
-    try {
-      const saved = await getSavedWorks();
-      setWorks(saved);
-      const entries = await Promise.all(
-        saved
-          .filter((w) => w.id)
-          .map(async (w) => {
-            const progress = await getReadingProgress(w.id!);
-            return [w.id!, progress] as const;
-          })
-      );
-      setProgressMap(Object.fromEntries(entries));
-    } catch {
-      setWorks([]);
-      setIsErrorDialogOpen(true);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadWorks();
-  }, [loadWorks]);
-
-  const handleDeleteClick = (work: Work) => {
-    setDeleteTarget(work);
-    setIsDeleteDialogOpen(true);
-  };
-
-  const handleDeleteConfirm = async (work: Work) => {
-    if (!work.id) return;
-    await deleteWork(work.id);
-    setIsDeleteDialogOpen(false);
-    setDeleteTarget(null);
-    await loadWorks();
-  };
-
-  const handleDeleteCancel = () => {
-    setIsDeleteDialogOpen(false);
-    setDeleteTarget(null);
-  };
-
-  const handleDetailClick = (work: Work) => {
-    if (work.id) {
-      router.push(`/book/${work.id}`);
-    }
-  };
-
-  const handleSearchClick = () => {
-    router.push("/search");
-  };
-
-  const handleHelpClick = () => {
-    router.push("/about");
-  };
+  const {
+    works,
+    isLoading,
+    progressMap,
+    deleteTarget,
+    isDeleteDialogOpen,
+    isErrorDialogOpen,
+    handleDeleteClick,
+    handleDeleteConfirm,
+    handleDeleteCancel,
+    handleDetailClick,
+    handleSearchClick,
+    handleHelpClick,
+    closeErrorDialog,
+  } = useTopScreen();
 
   return (
     <Box
@@ -180,7 +128,7 @@ export function TopScreen() {
       <ErrorDialog
         message="アプリの初期化に失敗しました。"
         isOpen={isErrorDialogOpen}
-        onClose={() => setIsErrorDialogOpen(false)}
+        onClose={closeErrorDialog}
       />
 
       <DeleteDialog

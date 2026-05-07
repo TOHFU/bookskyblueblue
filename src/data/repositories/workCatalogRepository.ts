@@ -1,5 +1,6 @@
 import works from "@/data/catalog/list_person_all_extended.json";
 import { workSchema, type Work } from "@/domain/entities/work";
+import type { WorkCatalogRepository } from "@/domain/repositories/workCatalogRepository";
 
 export function getWorkCatalog(): Work[] {
   const dataset = Array.isArray(works) ? works : [];
@@ -33,6 +34,17 @@ export function getWorkCatalog(): Work[] {
       return parsed.success ? parsed.data : null;
     })
     .filter((value): value is Work => value !== null);
+}
+
+export class JsonWorkCatalogRepository implements WorkCatalogRepository {
+  async findAll(): Promise<Work[]> {
+    return getWorkCatalog();
+  }
+
+  async findById(identifier: string): Promise<Work | null> {
+    const catalog = getWorkCatalog();
+    return catalog.find((work) => work.id === identifier) ?? null;
+  }
 }
 
 function readString(source: unknown, keys: string[]): string | undefined {
