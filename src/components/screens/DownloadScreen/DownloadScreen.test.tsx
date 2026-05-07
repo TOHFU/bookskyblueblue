@@ -16,21 +16,25 @@ vi.mock("next/navigation", () => ({
   }),
 }));
 
-// getWorkCatalog をモックして特定の identifier の作品を返す
-vi.mock("@/data/repositories/workCatalogRepository", () => ({
-  getWorkCatalog: () => [
-    {
-      id: "test-001",
-      title: "テスト作品",
-      author: "テスト著者",
-      htmlFileUrl: "https://example.com/test.html",
-      htmlFileCharset: "Unicode",
-    },
-  ],
-}));
+vi.mock("@/application/containers/clientWorkContainer", () => ({
+  clientWorkCatalogRepository: {
+    findById: vi.fn(async (identifier: string) => {
+      if (identifier !== "test-001") {
+        return null;
+      }
 
-vi.mock("@/data/repositories/workIndexedDbRepository", () => ({
-  saveWork: vi.fn().mockResolvedValue(undefined),
+      return {
+        id: "test-001",
+        title: "テスト作品",
+        author: "テスト著者",
+        htmlFileUrl: "https://example.com/test.html",
+        htmlFileCharset: "Unicode",
+      };
+    }),
+  },
+  clientWorkLibraryRepository: {
+    save: vi.fn().mockResolvedValue(undefined),
+  },
 }));
 
 function renderScreen(identifier = "test-001") {
