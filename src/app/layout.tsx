@@ -1,8 +1,9 @@
 import type { Metadata, Viewport } from "next";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import "./globals.css";
 import { Providers } from "./providers";
 import { GtmLoader } from "./GtmLoader";
+import { getInterpolatedColor } from "@/utils/timeBgColor";
 
 export const viewport: Viewport = {
   themeColor: "bg",
@@ -46,8 +47,13 @@ type RootLayoutProps = {
 };
 
 export default function RootLayout({ children }: RootLayoutProps) {
+  const initialBgColor = getInterpolatedColor(new Date());
+  const htmlStyle = {
+    "--time-bg-gradient": initialBgColor,
+  } as CSSProperties;
+
   return (
-    <html lang="ja" suppressHydrationWarning>
+    <html lang="ja" suppressHydrationWarning style={htmlStyle}>
       <head />
       <body>
         <GtmLoader gtmId="GTM-MFM4MWH4" />

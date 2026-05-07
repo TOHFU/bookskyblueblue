@@ -16,7 +16,8 @@
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "catalog:sync": "node scripts/sync-work-catalog-to-neon.mjs"
   },
   "keywords": [
     "nextjs",
@@ -29,6 +30,7 @@
     "@chakra-ui/react": "^3.34.0",
     "@emotion/cache": "^11.14.0",
     "@emotion/react": "^11.14.0",
+    "@neondatabase/serverless": "^1.1.0",
     "lucide-react": "^1.8.0",
     "next": "^16.2.4",
     "react": "^19.2.5",
