@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Box, Flex, Text, Badge } from "@chakra-ui/react";
 import { BookCardActionButtons } from "./BookCardActionButtons";
+import { useHapticFeedback } from "@/hooks/useHapticFeedback";
 import type { Work } from "@/domain/entities/work";
 
 type BookCardProps = {
@@ -31,6 +32,16 @@ export function BookCard({
   totalPages,
 }: BookCardProps) {
   const [isPressed, setIsPressed] = useState(false);
+  const triggerHapticFeedback = useHapticFeedback({ duration: 10, mobileOnly: true });
+
+  function handleCardClick() {
+    if (!onDetail) {
+      return;
+    }
+
+    triggerHapticFeedback();
+    onDetail(work);
+  }
 
   /** 進行ページ数の表示ラベルを返す */
   function getProgressLabel(page: number, total: number): string {
@@ -52,7 +63,7 @@ export function BookCard({
       aria-label={`作品: ${work.title}`}
       transform={isPressed ? "translate(2px, 2px)" : "translate(0, 0)"}
       transition="transform 0.06s ease-out"
-      onClick={onDetail ? () => onDetail(work) : undefined}
+      onClick={onDetail ? handleCardClick : undefined}
       onTouchStart={() => setIsPressed(true)}
       onTouchEnd={() => setIsPressed(false)}
       onTouchCancel={() => setIsPressed(false)}
