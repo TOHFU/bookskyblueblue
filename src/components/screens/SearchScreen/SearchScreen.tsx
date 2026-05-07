@@ -86,7 +86,7 @@ export function SearchScreen() {
             left="5"
             top="50%"
             transform="translateY(-50%)"
-            color="blue.800"
+            color="fg"
             opacity={0.7}
             zIndex={1}
             pointerEvents="none"
@@ -106,7 +106,7 @@ export function SearchScreen() {
             pr="5"
             fontSize="lg"
             fontWeight="600"
-            _placeholder={{ color: "blue.800", opacity: 0.7 }}
+            _placeholder={{ color: "fg", opacity: 0.7 }}
             aria-label="作品を検索"
           />
         </Box>
