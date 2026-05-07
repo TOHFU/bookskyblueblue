@@ -5,7 +5,7 @@ export async function downloadWorkUseCase(
   workCatalogRepository: WorkCatalogRepository,
   workLibraryRepository: WorkLibraryRepository,
   identifier: string,
-  fetcher: typeof fetch = fetch
+  fetcher: typeof fetch = (input, init) => fetch(input, init)
 ): Promise<void> {
   const work = await workCatalogRepository.findById(identifier);
 
