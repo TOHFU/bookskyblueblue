@@ -32,7 +32,7 @@ export function WorkDetailCard({ work, onDownload }: WorkDetailCardProps) {
         {/* 作品名 */}
         <Text
           fontSize="md"
-          fontWeight="400"
+          fontWeight="600"
           lineHeight="7"
           color="fg"
         >
@@ -135,7 +135,7 @@ export function WorkDetailCard({ work, onDownload }: WorkDetailCardProps) {
         {work.sourceBookName && (
           <Text
             fontSize="xs"
-            fontWeight="400"
+            fontWeight="600"
             lineHeight="5"
             color="fg"
             w="full"

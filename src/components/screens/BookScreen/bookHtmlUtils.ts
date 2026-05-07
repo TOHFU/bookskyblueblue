@@ -41,3 +41,74 @@ export function extractMainContent(html: string): string {
   if (bodyMatch) return sanitizeHtml(bodyMatch[1]);
   return sanitizeHtml(html);
 }
+
+function normalizeText(text: string): string {
+  return text.replace(/\s+/g, " ").trim();
+}
+
+function intersectsVertically(rect: DOMRect, containerRect: DOMRect): boolean {
+  return rect.bottom > containerRect.top && rect.top < containerRect.bottom;
+}
+
+function intersectsHorizontally(rect: DOMRect, containerRect: DOMRect): boolean {
+  return rect.right > containerRect.left && rect.left < containerRect.right;
+}
+
+function isVisibleRect(rect: DOMRect, containerRect: DOMRect): boolean {
+  return intersectsHorizontally(rect, containerRect) && intersectsVertically(rect, containerRect);
+}
+
+function extractSentence(text: string): string {
+  const normalized = normalizeText(text);
+
+  if (!normalized) {
+    return "";
+  }
+
+  const sentenceMatch = normalized.match(/^.*?[。！？!?]/);
+  const sentence = sentenceMatch ? sentenceMatch[0] : normalized;
+
+  return sentence.length > 56 ? `${sentence.slice(0, 55)}…` : sentence;
+}
+
+export function extractPageExcerpt(
+  rootElement: HTMLElement,
+  viewportElement: HTMLElement
+): string {
+  const viewportRect = viewportElement.getBoundingClientRect();
+  const walker = document.createTreeWalker(rootElement, NodeFilter.SHOW_TEXT);
+
+  while (walker.nextNode()) {
+    const textNode = walker.currentNode;
+    const textContent = textNode.textContent ?? "";
+
+    if (!normalizeText(textContent)) {
+      continue;
+    }
+
+    const nodeRange = document.createRange();
+    nodeRange.selectNodeContents(textNode);
+    const rects = Array.from(nodeRange.getClientRects());
+
+    if (!rects.some((rect) => isVisibleRect(rect, viewportRect))) {
+      continue;
+    }
+
+    for (let index = 0; index < textContent.length; index += 1) {
+      const range = document.createRange();
+      range.setStart(textNode, index);
+      range.setEnd(textNode, Math.min(index + 1, textContent.length));
+
+      const [rect] = Array.from(range.getClientRects());
+      if (!rect || !isVisibleRect(rect, viewportRect)) {
+        continue;
+      }
+
+      return extractSentence(textContent.slice(index));
+    }
+
+    return extractSentence(textContent);
+  }
+
+  return "";
+}

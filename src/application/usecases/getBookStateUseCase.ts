@@ -1,8 +1,10 @@
+import type { Bookmark } from "@/domain/entities/work";
 import type { WorkLibraryRepository } from "@/domain/repositories/workLibraryRepository";
 
 export type BookState = {
   content: string;
   page: number;
+  bookmarks: Bookmark[];
 };
 
 export async function getBookStateUseCase(
@@ -14,6 +16,7 @@ export async function getBookStateUseCase(
     return {
       content: "",
       page: 0,
+      bookmarks: [],
     };
   }
 
@@ -21,5 +24,6 @@ export async function getBookStateUseCase(
   return {
     content: work.content,
     page,
+    bookmarks: work._bookmarks ?? [],
   };
 }

@@ -1,22 +1,26 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { clientWorkLibraryRepository } from "@/application/containers/clientWorkContainer";
 import { getBookStateUseCase } from "@/application/usecases/getBookStateUseCase";
+import { toggleBookmarkUseCase } from "@/application/usecases/toggleBookmarkUseCase";
 import { updateReadingPositionUseCase } from "@/application/usecases/updateReadingPositionUseCase";
-import { extractMainContent } from "@/components/screens/BookScreen/bookHtmlUtils";
+import { extractMainContent, extractPageExcerpt } from "@/components/screens/BookScreen/bookHtmlUtils";
+import type { Bookmark } from "@/domain/entities/work";
 
 const FADE_TIMEOUT_MS = 3000;
 
 export function useBookScreen(identifier: string) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [htmlContent, setHtmlContent] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(0);
   const [pageCount, setPageCount] = useState(1);
   const [contentAreaWidth, setContentAreaWidth] = useState(0);
   const [controlsVisible, setControlsVisible] = useState(true);
   const [isReady, setIsReady] = useState(false);
+  const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
 
   const fadeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -44,8 +48,13 @@ export function useBookScreen(identifier: string) {
         return;
       }
 
+      const requestedPage = Number(searchParams.get("page"));
+      const initialPage =
+        Number.isInteger(requestedPage) && requestedPage >= 0 ? requestedPage : state.page;
+
       setHtmlContent(extractMainContent(state.content));
-      setCurrentPage(state.page);
+      setCurrentPage(initialPage);
+      setBookmarks(state.bookmarks);
       setIsReady(true);
     };
 
@@ -60,7 +69,7 @@ export function useBookScreen(identifier: string) {
         clearTimeout(fadeTimer.current);
       }
     };
-  }, [identifier]);
+  }, [identifier, searchParams]);
 
   const calcLayout = useCallback(() => {
     if (!innerRef.current || !contentAreaRef.current) {
@@ -150,6 +159,26 @@ export function useBookScreen(identifier: string) {
     router.push("/");
   }, [router]);
 
+  const handleToggleBookmark = useCallback(async () => {
+    if (!innerRef.current || !contentAreaRef.current) {
+      return;
+    }
+
+    showControls();
+
+    const excerpt = extractPageExcerpt(innerRef.current, contentAreaRef.current);
+    const nextBookmarks = await toggleBookmarkUseCase(
+      clientWorkLibraryRepository,
+      identifier,
+      {
+        page: currentPage,
+        excerpt,
+      }
+    );
+
+    setBookmarks(nextBookmarks);
+  }, [currentPage, identifier, showControls]);
+
   return {
     htmlContent,
     currentPage,
@@ -157,6 +186,8 @@ export function useBookScreen(identifier: string) {
     contentAreaWidth,
     controlsVisible,
     isReady,
+    bookmarks,
+    isCurrentPageBookmarked: bookmarks.some((bookmark) => bookmark.page === currentPage),
     isOddPageNumber: (currentPage + 1) % 2 !== 0,
     containerRef,
     contentAreaRef,
@@ -164,6 +195,7 @@ export function useBookScreen(identifier: string) {
     showControls,
     handlePrevPage,
     handleNextPage,
+    handleToggleBookmark,
     handleClose,
   };
 }
