@@ -1,5 +1,10 @@
 import { z } from "zod";
 
+export const bookmarkSchema = z.object({
+  page: z.number().int().nonnegative(),
+  excerpt: z.string(),
+});
+
 export const workSchema = z.object({
   id: z.string().optional(),
   title: z.string().optional(),
@@ -13,6 +18,10 @@ export const workSchema = z.object({
   htmlFileUrl: z.string().optional(),
   htmlFileCharset: z.string().optional(),
   content: z.string().optional(),
+  _readingPage: z.number().int().nonnegative().optional(),
+  _totalPages: z.number().int().nonnegative().optional(),
+  _bookmarks: z.array(bookmarkSchema).optional(),
 });
 
+export type Bookmark = z.infer<typeof bookmarkSchema>;
 export type Work = z.infer<typeof workSchema>;
