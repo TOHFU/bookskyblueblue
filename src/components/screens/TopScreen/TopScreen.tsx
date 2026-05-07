@@ -143,7 +143,9 @@ export function TopScreen() {
         aria-label="検索画面へ移動"
         position="fixed"
         bottom="6"
-        right="6"
+        right="0"
+        left="0"
+        marginX="auto"
         w="20"
         h="12"
         style={{ borderRadius: "9999px" }}

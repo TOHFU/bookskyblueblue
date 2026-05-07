@@ -26,7 +26,7 @@ export function SearchEmptyState({ query, onSampleClick }: SearchEmptyStateProps
       borderColor="border"
       w="full"
     >
-      <Box color="blue.800">
+      <Box color="fg">
         <SearchX size={32} strokeWidth={1.5} />
       </Box>
 
@@ -45,7 +45,7 @@ export function SearchEmptyState({ query, onSampleClick }: SearchEmptyStateProps
         fontSize="xs"
         fontWeight="600"
         lineHeight="5"
-        color="fg.muted"
+        color="fg"
         textAlign="center"
         w="full"
       >
@@ -69,7 +69,7 @@ export function SearchEmptyState({ query, onSampleClick }: SearchEmptyStateProps
               onClick={() => onSampleClick(sample)}
               aria-label={`${sample}で検索`}
             >
-              {"  - "}{sample}
+              {"  ・"}{sample}
             </Text>
           ))}
         </Flex>

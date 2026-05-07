@@ -1,8 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
-import Script from "next/script";
 import "./globals.css";
 import { Providers } from "./providers";
+import { GtmLoader } from "./GtmLoader";
 
 export const viewport: Viewport = {
   themeColor: "bg",
@@ -48,16 +48,9 @@ type RootLayoutProps = {
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="ja" suppressHydrationWarning>
-      <head>
-        <Script id="gtm" strategy="beforeInteractive">
-          {`(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','GTM-MFM4MWH4');`}
-        </Script>
-      </head>
+      <head />
       <body>
+        <GtmLoader gtmId="GTM-MFM4MWH4" />
         <noscript>
           <iframe
             src="https://www.googletagmanager.com/ns.html?id=GTM-MFM4MWH4"
