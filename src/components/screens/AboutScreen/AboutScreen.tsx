@@ -13,7 +13,7 @@ export function AboutScreen() {
   const router = useRouter();
 
   return (
-    <Box as="main" minH="100svh" bg="#16AEFA" position="relative">
+    <Box as="main" minH="100svh" position="relative">
       <AppToolbar
         rightSlot={
           <IconButton
