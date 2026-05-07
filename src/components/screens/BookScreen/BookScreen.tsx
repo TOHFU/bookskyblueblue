@@ -1,7 +1,8 @@
 "use client";
 
+import Image from "next/image";
 import { Box, Flex, IconButton, Text } from "@chakra-ui/react";
-import { X, ChevronLeft, ChevronRight } from "lucide-react";
+import { Bookmark, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useBookScreen } from "@/hooks/screens/useBookScreen";
 
 type BookScreenProps = {
@@ -22,6 +23,7 @@ export function BookScreen({ identifier }: BookScreenProps) {
     contentAreaWidth,
     controlsVisible,
     isReady,
+    isCurrentPageBookmarked,
     isOddPageNumber,
     containerRef,
     contentAreaRef,
@@ -29,6 +31,7 @@ export function BookScreen({ identifier }: BookScreenProps) {
     showControls,
     handlePrevPage,
     handleNextPage,
+    handleToggleBookmark,
     handleClose,
   } = useBookScreen(identifier);
 
@@ -66,7 +69,7 @@ export function BookScreen({ identifier }: BookScreenProps) {
             left="0"
           >
             <Box as="span" className="search-loading-icon" color="fg">
-              <img src="/icons/rotate-cw.svg" alt="ローディング" width={24} height={24} />
+              <Image src="/icons/rotate-cw.svg" alt="ローディング" width={24} height={24} />
             </Box>
           </Flex>
         )}
@@ -176,6 +179,18 @@ export function BookScreen({ identifier }: BookScreenProps) {
             onClick={handleClose}
           >
             <X size={20} />
+          </IconButton>
+
+          <IconButton
+            aria-label={isCurrentPageBookmarked ? "ブックマークを解除" : "ブックマークを追加"}
+            variant="solid"
+            bg={isCurrentPageBookmarked ? "fg" : "gray.900"}
+            color="fg.inverted"
+            w="11"
+            h="11"
+            onClick={handleToggleBookmark}
+          >
+            <Bookmark size={20} fill={isCurrentPageBookmarked ? "currentColor" : "none"} />
           </IconButton>
 
           {/* 右を押したら前のページ（縦書き本の進行方向） */}
