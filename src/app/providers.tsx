@@ -4,7 +4,8 @@ import { ChakraProvider } from "@chakra-ui/react";
 import createCache from "@emotion/cache";
 import { CacheProvider } from "@emotion/react";
 import { useServerInsertedHTML } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useState } from "react";
 import type { ReactNode } from "react";
 import { appSystem } from "@/styles/theme";
 import { useTimeBasedBgColor } from "@/hooks/useTimeBasedBgColor";
@@ -15,84 +16,52 @@ type ProvidersProps = {
 
 export function Providers({ children }: ProvidersProps) {
   const [{ cache, flush }] = useState(() => {
-    const c = createCache({ key: "css" });
-    // compat:true を作成後にセット。_insert は cache を closure で参照するため有効。
-    // compat=true で Global は SSR 時に <style> をツリーに挿入せず null を返し、
-    // CSS 文字列を cache.inserted[name] に格納するようになる。
-    c.compat = true;
+    const nextCache = createCache({ key: "chakra" });
+    nextCache.compat = true;
 
-    // グローバルスタイル（selector=""）とコンポーネントスタイルを分けて追跡する。
-    // クライアントの Global コンポーネントは
-    //   document.querySelector(`style[data-emotion="css-global ${name}"]`)
-    // を探して rehydration を行う。
-    // 我々が "css globalName" で emit するとこのクエリがヒットせず
-    // Global がスタイルを再挿入 → next チェーン順序が変わり hash がズレる。
-    const globalInserted: string[] = [];
-    const componentInserted: string[] = [];
+    const prevInsert = nextCache.insert;
+    let inserted: string[] = [];
 
-    const origInsert = c.insert.bind(c);
-    c.insert = (...args: Parameters<typeof origInsert>) => {
-      const [selector, serialized] = args;
-      const name = serialized.name;
-      if (c.inserted[name] === undefined) {
-        if (selector === "") {
-          // selector="" は Global コンポーネントからの呼び出し
-          globalInserted.push(name);
-        } else {
-          componentInserted.push(name);
-        }
+    nextCache.insert = (...args: Parameters<typeof prevInsert>) => {
+      const serialized = args[1];
+      if (nextCache.inserted[serialized.name] === undefined) {
+        inserted.push(serialized.name);
       }
-      return origInsert(...args);
+      return prevInsert(...args);
     };
 
-    const flush = () => ({
-      globals: globalInserted.splice(0),
-      components: componentInserted.splice(0),
-    });
+    const flush = () => {
+      const prevInserted = inserted;
+      inserted = [];
+      return prevInserted;
+    };
 
-    return { cache: c, flush };
+    return {
+      cache: nextCache,
+      flush,
+    };
   });
 
   useServerInsertedHTML(() => {
-    const { globals, components } = flush();
-    const elements: ReactNode[] = [];
+    const names = flush();
+    if (names.length === 0) {
+      return null;
+    }
 
-    // グローバルスタイルは 1 件ずつ "css-global NAME" で emit する。
-    // こうすることでクライアントの Global コンポーネントが
-    // data-emotion="css-global NAME" を見つけて rehydration できる。
-    for (const name of globals) {
-      const val = cache.inserted[name];
-      if (typeof val === "string") {
-        elements.push(
-          <style
-            key={`${cache.key}-global-${name}`}
-            data-emotion={`${cache.key}-global ${name}`}
-            dangerouslySetInnerHTML={{ __html: val }}
-          />,
-        );
+    let styles = "";
+    for (const name of names) {
+      const style = cache.inserted[name];
+      if (typeof style === "string") {
+        styles += style;
       }
     }
 
-    // コンポーネントスタイルはまとめて "css NAME1 NAME2 ..." で emit する。
-    if (components.length > 0) {
-      let styles = "";
-      for (const name of components) {
-        const val = cache.inserted[name];
-        if (typeof val === "string") styles += val;
-      }
-      if (styles) {
-        elements.push(
-          <style
-            key={cache.key}
-            data-emotion={`${cache.key} ${components.join(" ")}`}
-            dangerouslySetInnerHTML={{ __html: styles }}
-          />,
-        );
-      }
-    }
-
-    if (elements.length === 0) return null;
-    return <>{elements}</>;
+    return (
+      <style
+        data-emotion={`${cache.key} ${names.join(" ")}`}
+        dangerouslySetInnerHTML={{ __html: styles }}
+      />
+    );
   });
 
   return (
@@ -110,21 +79,7 @@ function TimeBgColorApplier() {
   const color = useTimeBasedBgColor();
 
   useEffect(() => {
-    // 120分周期のサイン波で X 軸を ±20% ゆっくり往復させる
-    const minutesSinceEpoch = Math.floor(Date.now() / 60000);
-    const phase = ((minutesSinceEpoch % 120) / 120) * 2 * Math.PI;
-    const xOffset = Math.sin(phase) * 20;
-
-    const x1 = (80 + xOffset).toFixed(1);
-    const x2 = (0 + xOffset).toFixed(1);
-    const x3 = (80 + xOffset).toFixed(1);
-
-    const gradient = [
-      `radial-gradient(at ${x1}% 50%, ${color} 0px, transparent 50%)`,
-      `radial-gradient(at ${x2}% 100%, ${color} 0px, transparent 50%)`,
-      `radial-gradient(at ${x3}% 100%, ${color} 0px, transparent 50%)`,
-    ].join(", ");
-    document.documentElement.style.setProperty("--time-bg-gradient", gradient);
+    document.documentElement.style.setProperty("--time-bg-gradient", color);
   }, [color]);
 
   return null;

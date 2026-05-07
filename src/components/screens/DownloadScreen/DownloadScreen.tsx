@@ -60,10 +60,10 @@ export function DownloadScreen({ identifier }: DownloadScreenProps) {
               value={progress}
               max={100}
               h="1.5"
-              bg="bg.muted"
+              bg="bg"
               borderRadius="0"
             >
-              <Progress.Track bg="bg.muted" borderRadius="0">
+              <Progress.Track bg="bg" borderRadius="0">
                 <Progress.Range bg="fg" />
               </Progress.Track>
             </Progress.Root>
