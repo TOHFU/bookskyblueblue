@@ -4,7 +4,7 @@ import { ChakraProvider } from "@chakra-ui/react";
 import createCache from "@emotion/cache";
 import { CacheProvider } from "@emotion/react";
 import { useServerInsertedHTML } from "next/navigation";
-import { useEffect } from "react";
+import { useLayoutEffect } from "react";
 import { useState } from "react";
 import type { ReactNode } from "react";
 import { appSystem } from "@/styles/theme";
@@ -78,7 +78,7 @@ export function Providers({ children }: ProvidersProps) {
 function TimeBgColorApplier() {
   const color = useTimeBasedBgColor();
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     document.documentElement.style.setProperty("--time-bg-gradient", color);
   }, [color]);
 
