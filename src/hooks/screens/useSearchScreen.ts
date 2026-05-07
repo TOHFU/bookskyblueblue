@@ -14,9 +14,14 @@ export function useSearchScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const latestQueryRef = useRef("");
+  const activeRequestIdRef = useRef(0);
 
   const fetchResults = useCallback(async (searchQuery: string) => {
+    const requestId = activeRequestIdRef.current + 1;
+    activeRequestIdRef.current = requestId;
     setIsLoading(true);
+
     try {
       const params = new URLSearchParams({ q: searchQuery });
       const response = await fetch(`/api/works?${params.toString()}`);
@@ -25,14 +30,25 @@ export function useSearchScreen() {
       }
 
       const data = (await response.json()) as Work[];
+      if (
+        searchQuery !== latestQueryRef.current ||
+        requestId !== activeRequestIdRef.current
+      ) {
+        return;
+      }
+
       setResults(data);
       setDisplayedCount(PAGE_SIZE);
     } finally {
-      setIsLoading(false);
+      if (requestId === activeRequestIdRef.current) {
+        setIsLoading(false);
+      }
     }
   }, []);
 
   useEffect(() => {
+    latestQueryRef.current = query;
+
     if (debounceTimer.current) {
       clearTimeout(debounceTimer.current);
     }

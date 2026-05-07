@@ -42,6 +42,12 @@ function renderScreen() {
   );
 }
 
+function wait(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
 describe("SearchScreen", () => {
   beforeEach(() => {
     mockPush.mockClear();
@@ -98,5 +104,51 @@ describe("SearchScreen", () => {
     const detailButtons = screen.getAllByRole("button", { name: "詳細を見る" });
     await userEvent.click(detailButtons[0]);
     expect(mockPush).toHaveBeenCalledWith("/search/detail/001");
+  });
+
+  it("古い検索レスポンスは現在の入力と不一致なら描画しない", async () => {
+    server.use(
+      http.get("http://localhost/api/works", async ({ request }) => {
+        const url = new URL(request.url);
+        const q = url.searchParams.get("q") ?? "";
+
+        if (q === "夏") {
+          await wait(300);
+          return HttpResponse.json([
+            {
+              id: "101",
+              title: "夏の古い結果",
+              author: "旧レスポンス",
+            },
+          ]);
+        }
+
+        if (q === "夏目") {
+          await wait(50);
+          return HttpResponse.json([
+            {
+              id: "102",
+              title: "夏目の最新結果",
+              author: "新レスポンス",
+            },
+          ]);
+        }
+
+        return HttpResponse.json([]);
+      }),
+    );
+
+    renderScreen();
+    const input = screen.getByRole("textbox", { name: "作品を検索" });
+
+    await userEvent.type(input, "夏");
+    await wait(320);
+    await userEvent.type(input, "目");
+
+    await waitFor(() => {
+      expect(screen.getByText("夏目の最新結果")).toBeInTheDocument();
+    }, { timeout: 2000 });
+
+    expect(screen.queryByText("夏の古い結果")).not.toBeInTheDocument();
   });
 });
