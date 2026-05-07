@@ -39,7 +39,8 @@ export function normalizeCatalogDataset(dataset: unknown): Work[] {
 
 export class ApiWorkCatalogRepository implements WorkCatalogRepository {
   constructor(
-    private readonly fetcher: typeof fetch = fetch,
+    private readonly fetcher: typeof fetch = (input, init) =>
+      fetch(input, init),
     private readonly basePath = "/api/catalog"
   ) {}
 
