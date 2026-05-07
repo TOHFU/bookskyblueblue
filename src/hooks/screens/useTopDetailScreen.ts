@@ -45,8 +45,8 @@ export function useTopDetailScreen(identifier: string) {
   }, [router]);
 
   const handleRead = useCallback(() => {
-    router.push(`/book/${identifier}`);
-  }, [identifier, router]);
+    router.push(`/book/${identifier}?page=${progress.page}`);
+  }, [identifier, progress.page, router]);
 
   const handleOpenBookmark = useCallback(
     (page: number) => {
