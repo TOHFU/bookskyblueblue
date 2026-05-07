@@ -8,7 +8,7 @@ const CHARSET_MAP: Record<string, string> = {
 export async function fetchWorkContentUseCase(
   repository: WorkCatalogRepository,
   identifier: string,
-  fetcher: typeof fetch = fetch
+  fetcher: typeof fetch = (input, init) => fetch(input, init)
 ): Promise<{ content: string } | null> {
   const work = await repository.findById(identifier);
 
