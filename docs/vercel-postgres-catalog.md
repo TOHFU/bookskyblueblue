@@ -7,7 +7,7 @@
 - レコード数が多い
 - 将来的に検索条件追加の可能性が高い
 
-という性質のため、**Vercel Databaseとして提供される Neon Postgres** が最適です。
+という性質のため、**Vercel Databaseとして提供される Neon Postgres** を利用する。
 
 理由:
 - JSON Blob保管より検索・更新・整合性管理に強い
