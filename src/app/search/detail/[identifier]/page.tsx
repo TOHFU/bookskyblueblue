@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
-import { getWorkCatalog } from "@/data/repositories/workCatalogRepository";
 import { SearchDetailScreen } from "@/components/screens/SearchDetailScreen";
+import { serverWorkCatalogRepository } from "@/application/containers/serverWorkContainer";
+import { getWorkByIdentifierUseCase } from "@/application/usecases/getWorkByIdentifierUseCase";
 
 type SearchDetailPageProps = {
   params: Promise<{ identifier: string }>;
@@ -8,8 +9,10 @@ type SearchDetailPageProps = {
 
 export default async function SearchDetailPage({ params }: SearchDetailPageProps) {
   const { identifier } = await params;
-  const catalog = getWorkCatalog();
-  const work = catalog.find((w) => w.id === identifier);
+  const work = await getWorkByIdentifierUseCase(
+    serverWorkCatalogRepository,
+    identifier
+  );
 
   if (!work) {
     notFound();

@@ -1,4 +1,5 @@
 import { workSchema, type Work } from "@/domain/entities/work";
+import type { WorkLibraryRepository } from "@/domain/repositories/workLibraryRepository";
 
 const DB_NAME = "bookskyblueblue";
 const DB_VERSION = 1;
@@ -124,4 +125,40 @@ export async function getReadingProgress(
     };
     request.onerror = () => reject(request.error);
   });
+}
+
+export class IndexedDbWorkLibraryRepository implements WorkLibraryRepository {
+  async getAll(): Promise<Work[]> {
+    return getSavedWorks();
+  }
+
+  async getById(identifier: string): Promise<Work | null> {
+    return getWork(identifier);
+  }
+
+  async save(work: Work): Promise<void> {
+    return saveWork(work);
+  }
+
+  async remove(identifier: string): Promise<void> {
+    return deleteWork(identifier);
+  }
+
+  async saveReadingPosition(
+    identifier: string,
+    page: number,
+    totalPages: number
+  ): Promise<void> {
+    return saveReadingPosition(identifier, page, totalPages);
+  }
+
+  async getReadingPosition(identifier: string): Promise<number> {
+    return getReadingPosition(identifier);
+  }
+
+  async getReadingProgress(
+    identifier: string
+  ): Promise<{ page: number; totalPages: number }> {
+    return getReadingProgress(identifier);
+  }
 }
