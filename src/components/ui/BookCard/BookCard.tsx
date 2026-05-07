@@ -50,8 +50,8 @@ export function BookCard({
       borderWidth="2px"
       borderColor="border"
       aria-label={`作品: ${work.title}`}
-      transform={isPressed ? "translate(4px, 4px)" : "translate(0, 0)"}
-      transition="transform 0.12s ease-out"
+      transform={isPressed ? "translate(2px, 2px)" : "translate(0, 0)"}
+      transition="transform 0.06s ease-out"
       onClick={onDetail ? () => onDetail(work) : undefined}
       onTouchStart={() => setIsPressed(true)}
       onTouchEnd={() => setIsPressed(false)}
