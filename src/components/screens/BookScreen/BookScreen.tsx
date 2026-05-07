@@ -1,21 +1,13 @@
 "use client";
 
 import { Box, Flex, IconButton, Text } from "@chakra-ui/react";
-import { useRouter } from "next/navigation";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  getWork,
-  saveReadingPosition,
-  getReadingPosition,
-} from "@/data/repositories/workIndexedDbRepository";
-import { sanitizeHtml, extractMainContent } from "./bookHtmlUtils";
+import { useBookScreen } from "@/hooks/screens/useBookScreen";
 
 type BookScreenProps = {
   identifier: string;
 };
 
-const FADE_TIMEOUT_MS = 3000;
 const FLOATING_CONTROL_HEIGHT = 44;
 
 /**
@@ -23,121 +15,22 @@ const FLOATING_CONTROL_HEIGHT = 44;
  * 縦書きマルチカラムで作品を表示し、ページネーション機能を提供する
  */
 export function BookScreen({ identifier }: BookScreenProps) {
-  const router = useRouter();
-  const [htmlContent, setHtmlContent] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState(0);
-  const [pageCount, setPageCount] = useState(1);
-  const [contentAreaWidth, setContentAreaWidth] = useState(0);
-  const [controlsVisible, setControlsVisible] = useState(true);
-  const [isReady, setIsReady] = useState(false);
-  const fadeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const contentAreaRef = useRef<HTMLDivElement>(null);
-  const innerRef = useRef<HTMLDivElement>(null);
-
-  // currentPage+1 が奇数ならページ番号は右、偶数なら左
-  const isOddPageNumber = (currentPage + 1) % 2 !== 0;
-
-  const showControls = useCallback(() => {
-    setControlsVisible(true);
-    if (fadeTimer.current) clearTimeout(fadeTimer.current);
-    fadeTimer.current = setTimeout(
-      () => setControlsVisible(false),
-      FADE_TIMEOUT_MS
-    );
-  }, []);
-
-  useEffect(() => {
-    const loadWork = async () => {
-      const work = await getWork(identifier);
-      if (!work?.content) {
-        setHtmlContent("");
-        setIsReady(true);
-        return;
-      }
-      const content = extractMainContent(work.content);
-      setHtmlContent(content);
-      const savedPage = await getReadingPosition(identifier);
-      setCurrentPage(savedPage);
-      setIsReady(true);
-    };
-
-    loadWork();
-    fadeTimer.current = setTimeout(
-      () => setControlsVisible(false),
-      FADE_TIMEOUT_MS
-    );
-    return () => {
-      if (fadeTimer.current) clearTimeout(fadeTimer.current);
-    };
-  }, [identifier]);
-
-  // コンテンツ描画後にページ数と幅を計算（ウィンドウリサイズ時にも再計算）
-  const calcLayout = useCallback(() => {
-    if (!innerRef.current || !contentAreaRef.current) return;
-
-    // インラインスタイルをリセットして CSS クラス(left:2em/right:2em)で自然幅を復元
-    contentAreaRef.current.style.width = "";
-    contentAreaRef.current.style.right = "";
-
-    const computedLH = parseFloat(getComputedStyle(innerRef.current).lineHeight);
-    const columnWidth =
-      Number.isFinite(computedLH) && computedLH > 0 ? computedLH : 32;
-
-    const rawAreaWidth = contentAreaRef.current.clientWidth;
-    const columnsPerPage = Math.max(1, Math.floor(rawAreaWidth / columnWidth));
-    const snappedPageWidth = columnsPerPage * columnWidth;
-
-    const totalWidth = innerRef.current.offsetWidth;
-    const totalColumns = Math.ceil(totalWidth / columnWidth);
-    const count = Math.max(1, Math.ceil(totalColumns / columnsPerPage));
-
-    // インラインスタイルで列幅倍数にスナップ（CSS クラスより優先される）
-    contentAreaRef.current.style.width = `${snappedPageWidth}px`;
-    // right: 2em CSS クラスをインラインで上書きして幅が再び制約されないようにする
-    contentAreaRef.current.style.right = "auto";
-
-    setContentAreaWidth(snappedPageWidth);
-    setPageCount(count);
-    setCurrentPage((prev) => Math.min(prev, count - 1));
-  }, []);
-
-  useEffect(() => {
-    if (!htmlContent) return;
-    calcLayout();
-  }, [htmlContent, calcLayout]);
-
-  // ウィンドウリサイズ時に再計算
-  // contentAreaRef ではなく containerRef を監視して自己ループを防ぐ
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-    const observer = new ResizeObserver(() => {
-      calcLayout();
-    });
-    observer.observe(container);
-    return () => observer.disconnect();
-  }, [calcLayout]);
-
-  const handlePrevPage = () => {
-    showControls();
-    if (currentPage <= 0) return;
-    const newPage = currentPage - 1;
-    setCurrentPage(newPage);
-    void saveReadingPosition(identifier, newPage, pageCount);
-  };
-
-  const handleNextPage = () => {
-    showControls();
-    if (currentPage >= pageCount - 1) return;
-    const newPage = currentPage + 1;
-    setCurrentPage(newPage);
-    void saveReadingPosition(identifier, newPage, pageCount);
-  };
-
-  const handleClose = () => {
-    router.push("/");
-  };
+  const {
+    htmlContent,
+    currentPage,
+    pageCount,
+    contentAreaWidth,
+    controlsVisible,
+    isReady,
+    isOddPageNumber,
+    containerRef,
+    contentAreaRef,
+    innerRef,
+    showControls,
+    handlePrevPage,
+    handleNextPage,
+    handleClose,
+  } = useBookScreen(identifier);
 
   return (
     <Box

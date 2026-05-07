@@ -1,36 +1,16 @@
 "use client";
 
 import { Box, Flex, IconButton, Input } from "@chakra-ui/react";
-import { useRouter } from "next/navigation";
 import { X, Search, RotateCw } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
 import { BookCard } from "@/components/ui/BookCard";
 import { AppToolbar } from "@/components/ui/AppToolbar";
+import { useIntersectionFadeIn } from "@/hooks/useIntersectionFadeIn";
+import { useSearchScreen } from "@/hooks/screens/useSearchScreen";
 import { SearchEmptyState } from "./SearchEmptyState";
-import type { Work } from "@/domain/entities/work";
-
-const PAGE_SIZE = 10;
 
 /** ビューポートに入ったタイミングでフェードインするラッパー */
 function FadeInBox({ children }: { children: React.ReactNode }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.1 }
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
+  const { ref, isVisible } = useIntersectionFadeIn<HTMLDivElement>();
 
   return (
     <Box
@@ -48,70 +28,18 @@ function FadeInBox({ children }: { children: React.ReactNode }) {
  * 作品のインクリメンタルサーチとカード一覧を提供する
  */
 export function SearchScreen() {
-  const router = useRouter();
-  const [query, setQuery] = useState("");
-  const [results, setResults] = useState<Work[]>([]);
-  const [displayedCount, setDisplayedCount] = useState(PAGE_SIZE);
-  const [isLoading, setIsLoading] = useState(false);
-  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  // 無限スクロール用の番兵要素
-  const sentinelRef = useRef<HTMLDivElement | null>(null);
-
-  const fetchResults = useCallback(async (searchQuery: string) => {
-    setIsLoading(true);
-    try {
-      const params = new URLSearchParams({ q: searchQuery });
-      const response = await fetch(`/api/works?${params.toString()}`);
-      if (!response.ok) throw new Error("検索に失敗しました");
-      const data = (await response.json()) as Work[];
-      setResults(data);
-      setDisplayedCount(PAGE_SIZE);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (debounceTimer.current) clearTimeout(debounceTimer.current);
-    debounceTimer.current = setTimeout(() => {
-      fetchResults(query);
-    }, 300);
-
-    return () => {
-      if (debounceTimer.current) clearTimeout(debounceTimer.current);
-    };
-  }, [query, fetchResults]);
-
-  // 番兵要素が画面に入ったら次のページを読み込む
-  useEffect(() => {
-    const sentinel = sentinelRef.current;
-    if (!sentinel) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          setDisplayedCount((prev) => prev + PAGE_SIZE);
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    observer.observe(sentinel);
-    return () => observer.disconnect();
-  }, [results]);
-
-  const handleDetailClick = (work: Work) => {
-    if (work.id) {
-      router.push(`/search/detail/${work.id}`);
-    }
-  };
-
-  const handleSampleQuery = (sample: string) => {
-    setQuery(sample);
-  };
-
-  const displayedWorks = results.slice(0, displayedCount);
-  const hasMore = displayedCount < results.length;
+  const {
+    query,
+    results,
+    displayedWorks,
+    isLoading,
+    hasMore,
+    sentinelRef,
+    handleQueryChange,
+    handleSampleQuery,
+    handleDetailClick,
+    handleClose,
+  } = useSearchScreen();
 
   return (
     <Box as="main" minH="100svh" bg="bg" position="relative">
@@ -142,7 +70,7 @@ export function SearchScreen() {
             h="11"
             bg="gray.900"
             color="fg.inverted"
-            onClick={() => router.push("/")}
+            onClick={handleClose}
           >
             <X size={20} />
           </IconButton>
@@ -167,7 +95,7 @@ export function SearchScreen() {
           </Box>
           <Input
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => handleQueryChange(e.target.value)}
             placeholder="作品名・作者名"
             bg="bg"
             borderWidth="2px"
