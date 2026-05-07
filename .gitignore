@@ -38,3 +38,4 @@ pnpm-debug.log*
 !.github/workflows
 !.github/workflows/*
 .vercel
+.env*.local
