@@ -1,7 +1,7 @@
 :root {
   color-scheme: light;
+  --time-bg-gradient: oklch(0.7150 0.1576 239.25);
   --chakra-colors-bg: var(--time-bg-gradient);
-  --time-bg-gradient: none;
 }
 
 * {

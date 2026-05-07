@@ -1,3 +1,3 @@
-import { JsonWorkCatalogRepository } from "@/data/repositories/workCatalogRepository";
+import { NeonWorkCatalogRepository } from "@/data/repositories/workCatalogNeonRepository";
 
-export const serverWorkCatalogRepository = new JsonWorkCatalogRepository();
+export const serverWorkCatalogRepository = new NeonWorkCatalogRepository();
