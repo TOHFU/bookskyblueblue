@@ -73,7 +73,7 @@ export function BookCard({
         {/* 作品名 */}
         <Text
           fontSize="md"
-          fontWeight="400"
+          fontWeight="600"
           lineHeight="7"
           color="fg"
         >

@@ -56,7 +56,7 @@ export function useTopScreen() {
   const handleDetailClick = useCallback(
     (work: Work) => {
       if (work.id) {
-        router.push(`/book/${work.id}`);
+        router.push(`/book/detail/${work.id}`);
       }
     },
     [router]

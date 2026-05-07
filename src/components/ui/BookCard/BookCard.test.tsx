@@ -33,7 +33,7 @@ describe("BookCard", () => {
     expect(article).toHaveStyle({ transform: "translate(0, 0)" });
 
     fireEvent.touchStart(article);
-    expect(article).toHaveStyle({ transform: "translate(4px, 4px)" });
+    expect(article).toHaveStyle({ transform: "translate(2px, 2px)" });
 
     fireEvent.touchEnd(article);
     expect(article).toHaveStyle({ transform: "translate(0, 0)" });
@@ -43,7 +43,7 @@ describe("BookCard", () => {
     const { article } = renderBookCard();
 
     fireEvent.mouseDown(article);
-    expect(article).toHaveStyle({ transform: "translate(4px, 4px)" });
+    expect(article).toHaveStyle({ transform: "translate(2px, 2px)" });
 
     fireEvent.mouseUp(article);
     expect(article).toHaveStyle({ transform: "translate(0, 0)" });
