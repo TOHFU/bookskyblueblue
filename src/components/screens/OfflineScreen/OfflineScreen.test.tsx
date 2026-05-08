@@ -2,7 +2,7 @@ import { ChakraProvider } from "@chakra-ui/react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { AboutScreen } from "./OfflineScreen";
+import { OfflineScreen } from "./OfflineScreen";
 import { appSystem } from "@/styles/theme";
 
 const mockPush = vi.fn();
@@ -25,24 +25,19 @@ vi.mock("next/image", () => ({
 function renderScreen() {
   render(
     <ChakraProvider value={appSystem}>
-      <AboutScreen />
+      <OfflineScreen />
     </ChakraProvider>,
   );
 }
 
-describe("AboutScreen", () => {
+describe("OfflineScreen", () => {
   beforeEach(() => {
     mockPush.mockClear();
   });
 
-  it("アプリの説明テキストが表示される", () => {
+  it("オフラインの説明テキストが表示される", () => {
     renderScreen();
-    expect(screen.getByText(/BOOK SKY, BLUE BLUEは、/)).toBeInTheDocument();
-  });
-
-  it("青空文庫ビューアの説明が表示される", () => {
-    renderScreen();
-    expect(screen.getByText(/青空文庫の本を検索/)).toBeInTheDocument();
+    expect(screen.getByText(/オフラインのようです/)).toBeInTheDocument();
   });
 
   it("TOPに戻るボタンが表示される", () => {
