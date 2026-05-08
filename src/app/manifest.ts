@@ -1,0 +1,28 @@
+import { MetadataRoute } from "next";
+
+export default function manifest(): MetadataRoute.Manifest {
+  return {
+    name: "Book Sky, Blue Blue",
+    short_name: "BookSky,BlueBlue",
+    description: "青空文庫の本を検索・ダウンロード・閲覧できるWebアプリ",
+    start_url: "/",
+    display: "standalone",
+    background_color: "#16AEFA",
+    theme_color: "#18181b",
+    orientation: "portrait",
+    icons: [
+      {
+        src: "/icons/icon-192.png",
+        sizes: "192x192",
+        type: "image/png",
+        purpose: "maskable"
+      },
+      {
+        src: "/icons/icon-512.png",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "maskable"
+      },
+    ],
+  };
+}
