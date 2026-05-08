@@ -19,13 +19,20 @@ export function useDownloadScreen(identifier: string) {
         setProgress(20);
         setProgress(40);
         setProgress(70);
-        setProgress(90);
 
         await downloadWorkUseCase(
           clientWorkCatalogRepository,
           clientWorkLibraryRepository,
           identifier
         );
+
+        setProgress(90);
+
+        const cache = await caches.open("book-pages-cache");
+        await Promise.all([
+          cache.add(`/book/${identifier}`),
+          cache.add(`/book/detail/${identifier}`)
+        ]);
 
         setProgress(100);
         setStatus("done");
