@@ -9,8 +9,8 @@ declare const self: ServiceWorkerGlobalScope & {
 const serwist = new Serwist({
   precacheEntries: [
     ...(self.__SW_MANIFEST || []),
-    { url: "/offline", revision: "2" }, // チャンク化実装対応版
-    { url: "/about", revision: "2" },
+    { url: "/offline", revision: "3" }, // チャンク化実装対応版
+    { url: "/about", revision: "3" },
   ],
   skipWaiting: true,
   clientsClaim: true,
