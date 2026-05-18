@@ -6,7 +6,13 @@ import { clientWorkLibraryRepository } from "@/application/containers/clientWork
 import { getBookStateUseCase } from "@/application/usecases/getBookStateUseCase";
 import { toggleBookmarkUseCase } from "@/application/usecases/toggleBookmarkUseCase";
 import { updateReadingPositionUseCase } from "@/application/usecases/updateReadingPositionUseCase";
-import { extractMainContent, extractPageExcerpt } from "@/components/screens/BookScreen/bookHtmlUtils";
+import {
+  extractMainContent,
+  extractPageExcerpt,
+  splitContentIntoChunks,
+  getRequiredChunkIds,
+  type ContentChunk,
+} from "@/components/screens/BookScreen/bookHtmlUtils";
 import type { Bookmark } from "@/domain/entities/work";
 
 const FADE_TIMEOUT_MS = 3000;
@@ -22,10 +28,16 @@ export function useBookScreen(identifier: string) {
   const [isReady, setIsReady] = useState(false);
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
 
+  // チャンク管理用の状態
+  const [chunks, setChunks] = useState<ContentChunk[]>([]);
+  const [visibleChunkIds, setVisibleChunkIds] = useState<Set<number>>(new Set());
+
   const fadeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const contentAreaRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
+  const fullHtmlContentRef = useRef<string>(""); // レイアウト計算用の全コンテンツ
+  const hasInitializedChunksRef = useRef(false); // チャンク化実行済みフラグ
 
   const showControls = useCallback(() => {
     setControlsVisible(true);
@@ -52,10 +64,13 @@ export function useBookScreen(identifier: string) {
       const initialPage =
         Number.isInteger(requestedPage) && requestedPage >= 0 ? requestedPage : state.page;
 
-      setHtmlContent(extractMainContent(state.content));
+      const mainContent = extractMainContent(state.content);
+      fullHtmlContentRef.current = mainContent;
+
+      // 最初はレイアウト計算のため全コンテンツを設定
+      setHtmlContent(mainContent);
       setCurrentPage(initialPage);
       setBookmarks(state.bookmarks);
-      setIsReady(true);
     };
 
     void loadWork();
@@ -99,6 +114,13 @@ export function useBookScreen(identifier: string) {
     setContentAreaWidth(snappedPageWidth);
     setPageCount(nextPageCount);
     setCurrentPage((prev) => Math.min(prev, nextPageCount - 1));
+
+    // レイアウト計算完了後、チャンク化を実行
+    if (!hasInitializedChunksRef.current && fullHtmlContentRef.current) {
+      const newChunks = splitContentIntoChunks(fullHtmlContentRef.current, nextPageCount);
+      setChunks(newChunks);
+      hasInitializedChunksRef.current = true;
+    }
   }, []);
 
   useEffect(() => {
@@ -108,6 +130,32 @@ export function useBookScreen(identifier: string) {
 
     calcLayout();
   }, [htmlContent, calcLayout]);
+
+  // チャンク化完了またはページ変更時に、必要なチャンクを更新
+  useEffect(() => {
+    if (chunks.length === 0 || !hasInitializedChunksRef.current) {
+      return;
+    }
+
+    const requiredIds = getRequiredChunkIds(currentPage);
+    setVisibleChunkIds(new Set(requiredIds));
+
+    // 必要なチャンクのHTMLを組み立てる
+    const visibleChunks = chunks.filter((chunk) => requiredIds.includes(chunk.chunkId));
+    const mergedHtml = visibleChunks.map((chunk) => chunk.html).join("");
+
+    if (mergedHtml && innerRef.current) {
+      // 直接DOMを更新してcalcLayout()の再実行を避ける
+      innerRef.current.innerHTML = mergedHtml;
+    }
+  }, [chunks, currentPage]);
+
+  // 最初のレイアウト計算完了時に isReady を true にする
+  useEffect(() => {
+    if (pageCount > 1 && fullHtmlContentRef.current && !isReady) {
+      setIsReady(true);
+    }
+  }, [pageCount, isReady]);
 
   useEffect(() => {
     const container = containerRef.current;
