@@ -28,6 +28,7 @@ export function BookScreen({ identifier }: BookScreenProps) {
     containerRef,
     contentAreaRef,
     innerRef,
+    pageOffset,
     showControls,
     handlePrevPage,
     handleNextPage,
@@ -85,7 +86,7 @@ export function BookScreen({ identifier }: BookScreenProps) {
             h="full"
             style={{
               opacity: isReady ? undefined : 0,
-              transform: `translateX(${currentPage * contentAreaWidth}px)`,
+              transform: `translateX(${pageOffset * contentAreaWidth}px)`,
               transition: isReady ? "transform 0.3s ease" : "none",
             }}
             dangerouslySetInnerHTML={{ __html: htmlContent }}
