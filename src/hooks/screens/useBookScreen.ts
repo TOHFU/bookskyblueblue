@@ -11,6 +11,7 @@ import {
   extractPageExcerpt,
   splitContentIntoChunks,
   getRequiredChunkIds,
+  countTextCharacters,
   type ContentChunk,
 } from "@/components/screens/BookScreen/bookHtmlUtils";
 import type { Bookmark } from "@/domain/entities/work";
@@ -37,7 +38,13 @@ export function useBookScreen(identifier: string) {
   const contentAreaRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
   const fullHtmlContentRef = useRef<string>(""); // レイアウト計算用の全コンテンツ
+  const fullTextLengthRef = useRef(0); // 全テキスト文字数
   const hasInitializedChunksRef = useRef(false); // チャンク化実行済みフラグ
+  const layoutRef = useRef({
+    pageWidth: 0,
+    pageHeight: 0,
+    pageCount: 0,
+  });
 
   const showControls = useCallback(() => {
     setControlsVisible(true);
@@ -66,6 +73,13 @@ export function useBookScreen(identifier: string) {
 
       const mainContent = extractMainContent(state.content);
       fullHtmlContentRef.current = mainContent;
+      fullTextLengthRef.current = countTextCharacters(mainContent);
+      hasInitializedChunksRef.current = false;
+      layoutRef.current = {
+        pageWidth: 0,
+        pageHeight: 0,
+        pageCount: 0,
+      };
 
       // 最初はレイアウト計算のため全コンテンツを設定
       setHtmlContent(mainContent);
@@ -115,11 +129,64 @@ export function useBookScreen(identifier: string) {
     setPageCount(nextPageCount);
     setCurrentPage((prev) => Math.min(prev, nextPageCount - 1));
 
-    // レイアウト計算完了後、チャンク化を実行
-    if (!hasInitializedChunksRef.current && fullHtmlContentRef.current) {
-      const newChunks = splitContentIntoChunks(fullHtmlContentRef.current, nextPageCount);
+    const pageHeight = contentAreaRef.current.clientHeight;
+    const shouldRegenerateChunks =
+      !hasInitializedChunksRef.current ||
+      layoutRef.current.pageWidth !== snappedPageWidth ||
+      layoutRef.current.pageHeight !== pageHeight ||
+      layoutRef.current.pageCount !== nextPageCount;
+
+    if (shouldRegenerateChunks && fullHtmlContentRef.current) {
+      const previousPageCount = layoutRef.current.pageCount;
+      const totalTextLength = fullTextLengthRef.current;
+      const pageFromTextIndex = (
+        page: number,
+        fromPages: number,
+        toPages: number
+      ) => {
+        if (fromPages <= 0 || toPages <= 0 || totalTextLength <= 0) {
+          return page;
+        }
+
+        const charPosition = Math.min(
+          totalTextLength,
+          Math.floor((page / fromPages) * totalTextLength)
+        );
+        return Math.min(
+          toPages - 1,
+          Math.max(0, Math.floor((charPosition / totalTextLength) * toPages))
+        );
+      };
+
+      if (previousPageCount > 0 && previousPageCount !== nextPageCount) {
+        setBookmarks((prev) =>
+          prev.map((bookmark) => ({
+            ...bookmark,
+            page: pageFromTextIndex(bookmark.page, previousPageCount, nextPageCount),
+          }))
+        );
+      }
+
+      setCurrentPage((prevCurrentPage) => {
+        if (previousPageCount > 0 && previousPageCount !== nextPageCount) {
+          return pageFromTextIndex(prevCurrentPage, previousPageCount, nextPageCount);
+        }
+        return Math.min(prevCurrentPage, nextPageCount - 1);
+      });
+
+      const newChunks = splitContentIntoChunks(
+        fullHtmlContentRef.current,
+        nextPageCount,
+        snappedPageWidth,
+        pageHeight
+      );
       setChunks(newChunks);
       hasInitializedChunksRef.current = true;
+      layoutRef.current = {
+        pageWidth: snappedPageWidth,
+        pageHeight,
+        pageCount: nextPageCount,
+      };
     }
   }, []);
 

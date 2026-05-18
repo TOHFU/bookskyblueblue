@@ -113,6 +113,12 @@ export function extractPageExcerpt(
   return "";
 }
 
+export function countTextCharacters(html: string): number {
+  const wrapper = document.createElement("div");
+  wrapper.innerHTML = html;
+  return wrapper.textContent?.length ?? 0;
+}
+
 // ============= チャンク管理 =============
 
 export const CHUNK_SIZE = 50; // 1チャンク = 50ページ
@@ -133,67 +139,110 @@ export interface ContentChunk {
  */
 export function splitContentIntoChunks(
   html: string,
-  totalPages: number
+  totalPages: number,
+  pageWidth: number,
+  pageHeight: number
 ): ContentChunk[] {
-  // 総ページ数からチャンク数を計算
-  const totalChunks = Math.ceil(totalPages / CHUNK_SIZE);
+  if (!html || totalPages <= 0 || pageWidth <= 0 || pageHeight <= 0) {
+    return [];
+  }
 
-  // HTMLをパース可能な形で分割するため、ラッパーを作成
   const wrapper = document.createElement("div");
+  wrapper.className = "book-content";
+  wrapper.style.position = "fixed";
+  wrapper.style.top = "0";
+  wrapper.style.left = "-9999px";
+  wrapper.style.width = `${pageWidth}px`;
+  wrapper.style.height = `${pageHeight}px`;
+  wrapper.style.visibility = "hidden";
+  wrapper.style.pointerEvents = "none";
+  wrapper.style.overflow = "visible";
   wrapper.innerHTML = html;
+  document.body.appendChild(wrapper);
 
-  const chunks: ContentChunk[] = [];
-  const children = Array.from(wrapper.children);
+  const containerRect = wrapper.getBoundingClientRect();
+  const range = document.createRange();
+  const walker = document.createTreeWalker(wrapper, NodeFilter.SHOW_TEXT);
+  const chunkStartPositions: Array<{ node: Text; offset: number }> = [];
+  let nextChunkStart = 0;
+  let lastTextNode: Text | null = null;
+  let lastTextOffset = 0;
 
-  let currentChunkId = 0;
-  let currentChunkHtml = "";
-  let currentChunkStartPage = 0;
+  const getPageIndexAtOffset = (node: Text, offset: number): number | null => {
+    range.setStart(node, offset);
+    range.setEnd(node, Math.min(offset + 1, node.length));
+    const rects = Array.from(range.getClientRects());
+    if (rects.length === 0) {
+      return null;
+    }
 
-  // 簡易的なページ数推定：テキスト文字数 / 平均文字数 per ページ
-  // 日本語テキスト1ページ ≈ 500文字が目安
-  const estimatedCharsPerPage = 500;
-  const totalChars = wrapper.textContent?.length ?? 0;
-  const charsPerChunk = (totalChars / totalPages) * CHUNK_SIZE;
+    const rect = rects[0];
+    return Math.max(0, Math.floor((containerRect.right - rect.right) / pageWidth));
+  };
 
-  let currentChunkChars = 0;
+  while (nextChunkStart < totalPages && walker.nextNode()) {
+    const textNode = walker.currentNode as Text;
+    const textContent = textNode.textContent ?? "";
+    if (!normalizeText(textContent)) {
+      continue;
+    }
 
-  for (const child of children) {
-    const childChars = child.textContent?.length ?? 0;
-    currentChunkHtml += child.outerHTML;
-    currentChunkChars += childChars;
+    lastTextNode = textNode;
+    lastTextOffset = textContent.length;
 
-    // チャンク内の文字数がしきい値を超えたら、チャンクを確定
-    if (currentChunkChars >= charsPerChunk && currentChunkId < totalChunks - 1) {
-      const endPage = Math.min(
-        currentChunkStartPage + CHUNK_SIZE,
-        totalPages - 1
-      );
+    let index = 0;
+    while (index < textContent.length && nextChunkStart < totalPages) {
+      const pageIndex = getPageIndexAtOffset(textNode, index);
+      if (pageIndex === null) {
+        index += 1;
+        continue;
+      }
 
-      chunks.push({
-        chunkId: currentChunkId,
-        startPage: currentChunkStartPage,
-        endPage,
-        html: currentChunkHtml,
-      });
+      while (pageIndex >= nextChunkStart && nextChunkStart < totalPages) {
+        chunkStartPositions.push({ node: textNode, offset: index });
+        nextChunkStart += CHUNK_SIZE;
+      }
 
-      // 次のチャンクを初期化
-      currentChunkId += 1;
-      currentChunkStartPage = endPage + 1;
-      currentChunkHtml = "";
-      currentChunkChars = 0;
+      index += 1;
     }
   }
 
-  // 残りのコンテンツを最終チャンクに追加
-  if (currentChunkHtml) {
+  if (chunkStartPositions.length === 0 && lastTextNode) {
+    chunkStartPositions.push({ node: lastTextNode, offset: 0 });
+  }
+
+  const totalChunks = Math.max(1, Math.ceil(totalPages / CHUNK_SIZE));
+  while (chunkStartPositions.length < totalChunks && lastTextNode) {
+    chunkStartPositions.push({ node: lastTextNode, offset: lastTextOffset });
+  }
+
+  const chunks: ContentChunk[] = [];
+  for (let chunkId = 0; chunkId < totalChunks; chunkId += 1) {
+    const startBoundary = chunkStartPositions[chunkId] || {
+      node: lastTextNode as Text,
+      offset: 0,
+    };
+    const endBoundary = chunkStartPositions[chunkId + 1] || {
+      node: lastTextNode as Text,
+      offset: lastTextOffset,
+    };
+
+    range.setStart(startBoundary.node, startBoundary.offset);
+    range.setEnd(endBoundary.node, endBoundary.offset);
+
+    const fragment = range.cloneContents();
+    const chunkWrapper = document.createElement("div");
+    chunkWrapper.appendChild(fragment);
+
     chunks.push({
-      chunkId: currentChunkId,
-      startPage: currentChunkStartPage,
-      endPage: totalPages - 1,
-      html: currentChunkHtml,
+      chunkId,
+      startPage: chunkId * CHUNK_SIZE,
+      endPage: Math.min((chunkId + 1) * CHUNK_SIZE, totalPages) - 1,
+      html: chunkWrapper.innerHTML,
     });
   }
 
+  document.body.removeChild(wrapper);
   return chunks;
 }
 
