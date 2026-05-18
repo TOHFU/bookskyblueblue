@@ -1,5 +1,5 @@
 import { defaultCache } from "@serwist/next/worker";
-import { Serwist, NetworkOnly, StaleWhileRevalidate, NetworkFirst, type PrecacheEntry } from "serwist";
+import { Serwist, NetworkOnly, StaleWhileRevalidate, type PrecacheEntry } from "serwist";
 
 // Webpackが注入する __SW_MANIFEST の型を定義
 declare const self: ServiceWorkerGlobalScope & {
@@ -9,8 +9,8 @@ declare const self: ServiceWorkerGlobalScope & {
 const serwist = new Serwist({
   precacheEntries: [
     ...(self.__SW_MANIFEST || []),
-    { url: "/offline", revision: "2" }, // チャンク化実装対応版
-    { url: "/about", revision: "2" },
+    { url: "/offline", revision: "1" },
+    { url: "/about", revision: "1" },
   ],
   skipWaiting: true,
   clientsClaim: true,
@@ -24,9 +24,8 @@ const serwist = new Serwist({
     {
         // 正規表現で /book/数字 や /book/detail/数字 にマッチさせる
         matcher: ({ url }) => /^\/book\/(\d+)/.test(url.pathname) || /^\/book\/detail\/(\d+)/.test(url.pathname),
-        handler: new NetworkFirst({
+        handler: new StaleWhileRevalidate({
         cacheName: "book-pages-cache",
-        networkTimeoutSeconds: 3,
         plugins: [
             {
             cachedResponseWillBeUsed: async ({ cachedResponse }) => {
