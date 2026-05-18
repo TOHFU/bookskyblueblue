@@ -112,3 +112,102 @@ export function extractPageExcerpt(
 
   return "";
 }
+
+// ============= チャンク管理 =============
+
+export const CHUNK_SIZE = 50; // 1チャンク = 50ページ
+
+export interface ContentChunk {
+  chunkId: number;
+  startPage: number;
+  endPage: number;
+  html: string;
+}
+
+/**
+ * 全HTMLをチャンクに分割する
+ * 各チャンクは50ページ相当のコンテンツを含む
+ * @param html 全体のHTML
+ * @param totalPages 総ページ数
+ * @returns チャンク配列
+ */
+export function splitContentIntoChunks(
+  html: string,
+  totalPages: number
+): ContentChunk[] {
+  // 総ページ数からチャンク数を計算
+  const totalChunks = Math.ceil(totalPages / CHUNK_SIZE);
+
+  // HTMLをパース可能な形で分割するため、ラッパーを作成
+  const wrapper = document.createElement("div");
+  wrapper.innerHTML = html;
+
+  const chunks: ContentChunk[] = [];
+  const children = Array.from(wrapper.children);
+
+  let currentChunkId = 0;
+  let currentChunkHtml = "";
+  let currentChunkStartPage = 0;
+
+  // 簡易的なページ数推定：テキスト文字数 / 平均文字数 per ページ
+  // 日本語テキスト1ページ ≈ 500文字が目安
+  const estimatedCharsPerPage = 500;
+  const totalChars = wrapper.textContent?.length ?? 0;
+  const charsPerChunk = (totalChars / totalPages) * CHUNK_SIZE;
+
+  let currentChunkChars = 0;
+
+  for (const child of children) {
+    const childChars = child.textContent?.length ?? 0;
+    currentChunkHtml += child.outerHTML;
+    currentChunkChars += childChars;
+
+    // チャンク内の文字数がしきい値を超えたら、チャンクを確定
+    if (currentChunkChars >= charsPerChunk && currentChunkId < totalChunks - 1) {
+      const endPage = Math.min(
+        currentChunkStartPage + CHUNK_SIZE,
+        totalPages - 1
+      );
+
+      chunks.push({
+        chunkId: currentChunkId,
+        startPage: currentChunkStartPage,
+        endPage,
+        html: currentChunkHtml,
+      });
+
+      // 次のチャンクを初期化
+      currentChunkId += 1;
+      currentChunkStartPage = endPage + 1;
+      currentChunkHtml = "";
+      currentChunkChars = 0;
+    }
+  }
+
+  // 残りのコンテンツを最終チャンクに追加
+  if (currentChunkHtml) {
+    chunks.push({
+      chunkId: currentChunkId,
+      startPage: currentChunkStartPage,
+      endPage: totalPages - 1,
+      html: currentChunkHtml,
+    });
+  }
+
+  return chunks;
+}
+
+/**
+ * 現在のページから、必要なチャンクIDを計算する
+ * 前後1チャンクを含めて、合計3チャンク分のデータを保持する
+ * @param currentPage 現在のページ
+ * @returns 保持すべきチャンクIDの配列
+ */
+export function getRequiredChunkIds(currentPage: number): number[] {
+  const currentChunkId = Math.floor(currentPage / CHUNK_SIZE);
+  return [
+    Math.max(0, currentChunkId - 1), // 前のチャンク
+    currentChunkId, // 現在のチャンク
+    currentChunkId + 1, // 次のチャンク
+  ];
+}
