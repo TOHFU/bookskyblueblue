@@ -30,7 +30,7 @@ export function useBookScreen(identifier: string) {
 
   // チャンク管理用の状態
   const [chunks, setChunks] = useState<ContentChunk[]>([]);
-  const [visibleChunkIds, setVisibleChunkIds] = useState<Set<number>>(new Set());
+  const [pageOffset, setPageOffset] = useState(0);
 
   const fadeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -138,17 +138,16 @@ export function useBookScreen(identifier: string) {
     }
 
     const requiredIds = getRequiredChunkIds(currentPage);
-    setVisibleChunkIds(new Set(requiredIds));
-
-    // 必要なチャンクのHTMLを組み立てる
     const visibleChunks = chunks.filter((chunk) => requiredIds.includes(chunk.chunkId));
     const mergedHtml = visibleChunks.map((chunk) => chunk.html).join("");
+    const firstVisiblePage = visibleChunks[0]?.startPage ?? 0;
 
-    if (mergedHtml && innerRef.current) {
-      // 直接DOMを更新してcalcLayout()の再実行を避ける
-      innerRef.current.innerHTML = mergedHtml;
+    setPageOffset(Math.max(0, currentPage - firstVisiblePage));
+
+    if (mergedHtml && mergedHtml !== htmlContent) {
+      setHtmlContent(mergedHtml);
     }
-  }, [chunks, currentPage]);
+  }, [chunks, currentPage, htmlContent]);
 
   // 最初のレイアウト計算完了時に isReady を true にする
   useEffect(() => {
@@ -237,6 +236,7 @@ export function useBookScreen(identifier: string) {
     bookmarks,
     isCurrentPageBookmarked: bookmarks.some((bookmark) => bookmark.page === currentPage),
     isOddPageNumber: (currentPage + 1) % 2 !== 0,
+    pageOffset,
     containerRef,
     contentAreaRef,
     innerRef,
