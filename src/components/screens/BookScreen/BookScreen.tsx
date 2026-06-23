@@ -19,8 +19,10 @@ export function BookScreen({ identifier }: BookScreenProps) {
   const {
     htmlContent,
     currentPage,
+    localPage,
     pageCount,
     contentAreaWidth,
+    isChunkTransitioning,
     controlsVisible,
     isReady,
     isCurrentPageBookmarked,
@@ -85,8 +87,9 @@ export function BookScreen({ identifier }: BookScreenProps) {
             h="full"
             style={{
               opacity: isReady ? undefined : 0,
-              transform: `translateX(${currentPage * contentAreaWidth}px)`,
-              transition: isReady ? "transform 0.3s ease" : "none",
+              transform: `translateX(${localPage * contentAreaWidth}px)`,
+              transition:
+                isReady && !isChunkTransitioning ? "transform 0.3s ease" : "none",
             }}
             dangerouslySetInnerHTML={{ __html: htmlContent }}
           />
