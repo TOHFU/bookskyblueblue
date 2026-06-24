@@ -1,4 +1,7 @@
 /** imgタグをalt属性のテキストに置換し、スクリプト・危険な属性を除去する */
+import type { StoredBookLayout } from "@/domain/entities/bookLayoutCache";
+import { splitHtmlIntoBlocksImpl } from "./splitHtmlIntoBlocksImpl";
+
 export function sanitizeHtml(html: string): string {
   return html
     // imgタグはaltテキストのみ残す
@@ -85,7 +88,10 @@ export type PageNavigationDirection = "forward" | "backward" | "neutral";
 
 export type CalculatedChunk = {
   chunkId: number;
+  /** チャンク管理用の名目開始ページ（オーバーラップ計算に使用） */
   startPage: number;
+  /** チャンク HTML の translateX=0 が指すグローバルページ */
+  contentStartPage: number;
   endPage: number;
   content: string;
   blockStart: number;
@@ -102,9 +108,15 @@ export type ChunkMetadata = {
   layoutParams: LayoutParams;
 };
 
+export function getEffectiveContainerWidth(params: LayoutParams): number {
+  const columnsPerPage = Math.max(1, Math.floor(params.containerWidth / params.columnWidth));
+  return columnsPerPage * params.columnWidth;
+}
+
 function measurePageCount(element: HTMLElement, params: LayoutParams): number {
-  const { columnWidth, containerWidth } = params;
-  const columnsPerPage = Math.max(1, Math.floor(containerWidth / columnWidth));
+  const columnWidth = params.columnWidth;
+  const pageWidth = getEffectiveContainerWidth(params);
+  const columnsPerPage = Math.max(1, Math.floor(pageWidth / columnWidth));
   const totalWidth = element.offsetWidth;
   const totalColumns = Math.ceil(totalWidth / columnWidth);
   return Math.max(1, Math.ceil(totalColumns / columnsPerPage));
@@ -122,40 +134,18 @@ function createOffscreenMeasurer(params: LayoutParams): {
     "visibility:hidden",
     "overflow:hidden",
     `height:${params.containerHeight}px`,
-    `width:${params.containerWidth}px`,
+    `width:${getEffectiveContainerWidth(params)}px`,
   ].join(";");
   const content = document.createElement("div");
   content.className = "book-content";
-  content.style.height = "100%";
+  content.style.cssText = "position:absolute;right:0;top:0;height:100%;width:max-content;";
   root.appendChild(content);
   document.body.appendChild(root);
   return { root, content };
 }
 
 export function splitHtmlIntoBlocks(html: string): string[] {
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(`<div id="chunk-root">${html}</div>`, "text/html");
-  const root = doc.getElementById("chunk-root");
-  if (!root) {
-    return [html];
-  }
-
-  const blocks: string[] = [];
-  root.childNodes.forEach((node) => {
-    if (node.nodeType === Node.TEXT_NODE) {
-      const text = node.textContent?.trim();
-      if (text) {
-        blocks.push(text);
-      }
-      return;
-    }
-
-    if (node.nodeType === Node.ELEMENT_NODE) {
-      blocks.push((node as Element).outerHTML);
-    }
-  });
-
-  return blocks.length > 0 ? blocks : [html];
+  return splitHtmlIntoBlocksImpl(html);
 }
 
 function buildChunkContent(blocks: string[], blockStart: number, blockEnd: number): string {
@@ -243,7 +233,8 @@ function buildChunkAtStartPage(
     return {
       chunkId,
       startPage,
-      endPage: startPage + chunkPages,
+      contentStartPage: pagesBeforeStart,
+      endPage: pagesBeforeStart + chunkPages,
       blockStart,
       blockEnd,
       content: buildChunkContent(blocks, blockStart, blockEnd),
@@ -257,27 +248,139 @@ function findMatchingChunks(
   metadata: ChunkMetadata,
   globalPage: number
 ): CalculatedChunk[] {
-  return metadata.chunks.filter(
-    (entry) => globalPage >= entry.startPage && globalPage < entry.endPage
-  );
+  return metadata.chunks.filter((entry) => isPageInChunk(globalPage, entry));
 }
 
 export function isPageInChunk(globalPage: number, chunk: CalculatedChunk): boolean {
-  return globalPage >= chunk.startPage && globalPage < chunk.endPage;
+  return globalPage >= chunk.contentStartPage && globalPage < chunk.endPage;
+}
+
+/** 実際に描画されたページ数に基づき、チャンク内にページが収まるか判定する */
+export function isPageRenderableInChunk(
+  globalPage: number,
+  chunk: CalculatedChunk,
+  contentElement: HTMLElement,
+  params: LayoutParams
+): boolean {
+  if (!isPageInChunk(globalPage, chunk)) {
+    return false;
+  }
+
+  const renderablePages = measurePageCount(contentElement, params);
+  const localPage = globalPage - chunk.contentStartPage;
+  return localPage >= 0 && localPage < renderablePages;
+}
+
+/** 縦書きコンテンツの translateX を算出する（コンテンツ幅を超えないようクランプ） */
+export function measureTranslateXForPage(
+  contentElement: HTMLElement | null,
+  globalPage: number,
+  contentStartPage: number,
+  params: LayoutParams | null
+): number {
+  if (!contentElement || !params) {
+    return 0;
+  }
+
+  const pageWidth = getEffectiveContainerWidth(params);
+  if (pageWidth <= 0) {
+    return 0;
+  }
+
+  const localPage = Math.max(0, globalPage - contentStartPage);
+  const maxOffset = Math.max(0, contentElement.offsetWidth - pageWidth);
+  return Math.min(localPage * pageWidth, maxOffset);
+}
+
+function materializeChunkFromBoundary(
+  metadata: ChunkMetadata,
+  boundary: {
+    chunkId: number;
+    startPage: number;
+    contentStartPage?: number;
+    endPage: number;
+    blockStart: number;
+    blockEnd: number;
+  }
+): CalculatedChunk {
+  const measurer = new BlockMeasurer(metadata.layoutParams);
+
+  try {
+    const pagesBeforeStart =
+      boundary.blockStart > 0
+        ? measurer.measurePrefix(metadata.blocks, boundary.blockStart - 1)
+        : 0;
+    const pagesThroughEnd = measurer.measurePrefix(metadata.blocks, boundary.blockEnd);
+    const chunkPages = Math.max(1, pagesThroughEnd - pagesBeforeStart);
+
+    return {
+      ...boundary,
+      contentStartPage: pagesBeforeStart,
+      endPage: pagesBeforeStart + chunkPages,
+      content: buildChunkContent(metadata.blocks, boundary.blockStart, boundary.blockEnd),
+    };
+  } finally {
+    measurer.dispose();
+  }
 }
 
 function ensureChunkAtStartPage(
   metadata: ChunkMetadata,
-  startPage: number
+  startPage: number,
+  requiredPage?: number
 ): CalculatedChunk {
   const existing = metadata.chunks.find((chunk) => chunk.startPage === startPage);
-  if (existing) {
+  if (
+    existing &&
+    (requiredPage === undefined || isPageInChunk(requiredPage, existing))
+  ) {
     return existing;
+  }
+
+  if (existing) {
+    metadata.chunks = metadata.chunks.filter((chunk) => chunk.startPage !== startPage);
   }
 
   const chunk = buildChunkAtStartPage(metadata, startPage, metadata.chunks.length);
   metadata.chunks.push(chunk);
   metadata.chunks.sort((left, right) => left.startPage - right.startPage);
+
+  if (
+    requiredPage !== undefined &&
+    !isPageInChunk(requiredPage, chunk) &&
+    metadata.blocks.length > 0
+  ) {
+    metadata.chunks = metadata.chunks.filter((item) => item.startPage !== startPage);
+    const extendedLastPage = Math.max(
+      startPage + CHUNK_SIZE - 1,
+      requiredPage,
+      chunk.endPage - 1
+    );
+    const measurer = new BlockMeasurer(metadata.layoutParams);
+    try {
+      const blockStart = findBlockForPageStart(metadata.blocks, startPage, measurer);
+      const blockEnd = findBlockForPageStart(metadata.blocks, extendedLastPage, measurer);
+      const pagesBeforeStart =
+        blockStart > 0 ? measurer.measurePrefix(metadata.blocks, blockStart - 1) : 0;
+      const pagesThroughEnd = measurer.measurePrefix(metadata.blocks, blockEnd);
+      const chunkPages = pagesThroughEnd - pagesBeforeStart;
+      const extended: CalculatedChunk = {
+        chunkId: metadata.chunks.length,
+        startPage,
+        contentStartPage: pagesBeforeStart,
+        endPage: pagesBeforeStart + chunkPages,
+        blockStart,
+        blockEnd,
+        content: buildChunkContent(metadata.blocks, blockStart, blockEnd),
+      };
+      metadata.chunks.push(extended);
+      metadata.chunks.sort((left, right) => left.startPage - right.startPage);
+      return extended;
+    } finally {
+      measurer.dispose();
+    }
+  }
+
   return chunk;
 }
 
@@ -317,6 +420,7 @@ export function chunkToStoredBoundary(chunk: CalculatedChunk) {
   return {
     chunkId: chunk.chunkId,
     startPage: chunk.startPage,
+    contentStartPage: chunk.contentStartPage,
     endPage: chunk.endPage,
     blockStart: chunk.blockStart,
     blockEnd: chunk.blockEnd,
@@ -357,39 +461,31 @@ export function findNextMissingChunkStartPage(metadata: ChunkMetadata): number |
 
 export function addChunkAtStartPage(
   metadata: ChunkMetadata,
-  startPage: number
+  startPage: number,
+  requiredPage?: number
 ): CalculatedChunk {
-  return ensureChunkAtStartPage(metadata, startPage);
+  return ensureChunkAtStartPage(metadata, startPage, requiredPage);
 }
 
 export function hydrateMetadataFromCache(
   blocks: string[],
   params: LayoutParams,
-  cached: {
-    totalPages: number;
-    totalChunks: number;
-    chunkBoundaries: Array<{
-      chunkId: number;
-      startPage: number;
-      endPage: number;
-      blockStart: number;
-      blockEnd: number;
-    }>;
-  }
+  cached: Pick<StoredBookLayout, "totalPages" | "totalChunks" | "isComplete" | "chunkBoundaries">
 ): ChunkMetadata {
-  const chunks: CalculatedChunk[] = cached.chunkBoundaries.map((boundary) => ({
-    ...boundary,
-    content: buildChunkContent(blocks, boundary.blockStart, boundary.blockEnd),
-  }));
-
-  return {
+  const metadata: ChunkMetadata = {
     totalPages: cached.totalPages,
-    totalPagesKnown: true,
+    totalPagesKnown: cached.isComplete,
     totalChunks: cached.totalChunks,
-    chunks,
+    chunks: [],
     blocks,
     layoutParams: params,
   };
+
+  metadata.chunks = cached.chunkBoundaries.map((boundary) =>
+    materializeChunkFromBoundary(metadata, boundary)
+  );
+
+  return metadata;
 }
 
 export function applyTotalPagesToMetadata(metadata: ChunkMetadata, totalPages: number): void {
@@ -401,38 +497,25 @@ export function applyTotalPagesToMetadata(metadata: ChunkMetadata, totalPages: n
 export function prepareBookDisplayFromCache(
   blocks: string[],
   params: LayoutParams,
-  cached: {
-    totalPages: number;
-    totalChunks: number;
-    chunkBoundaries: Array<{
-      chunkId: number;
-      startPage: number;
-      endPage: number;
-      blockStart: number;
-      blockEnd: number;
-    }>;
-  },
+  cached: Pick<StoredBookLayout, "totalPages" | "totalChunks" | "isComplete" | "chunkBoundaries">,
   initialPage: number
 ): ChunkMetadata {
   const metadata = hydrateMetadataFromCache(blocks, params, cached);
-  const hasInitialChunk = metadata.chunks.some(
-    (chunk) => initialPage >= chunk.startPage && initialPage < chunk.endPage
-  );
+  const hasInitialChunk = metadata.chunks.some((chunk) => isPageInChunk(initialPage, chunk));
 
   if (!hasInitialChunk) {
-    addChunkAtStartPage(metadata, resolveChunkStartPage(initialPage));
+    addChunkAtStartPage(metadata, resolveChunkStartPage(initialPage), initialPage);
   }
 
   return metadata;
 }
 
 /** 初回表示用: 開くページのチャンクだけ先に構築する（総ページ数は後で計測） */
-export function prepareBookDisplay(
-  html: string,
+export function prepareBookDisplayFromBlocks(
+  blocks: string[],
   params: LayoutParams,
   initialPage: number
 ): ChunkMetadata {
-  const blocks = splitHtmlIntoBlocks(html);
   const isEmpty = blocks.every((block) => !block.trim());
 
   const metadata: ChunkMetadata = {
@@ -449,8 +532,17 @@ export function prepareBookDisplay(
   }
 
   const initialStartPage = resolveChunkStartPage(initialPage);
-  ensureChunkAtStartPage(metadata, initialStartPage);
+  ensureChunkAtStartPage(metadata, initialStartPage, initialPage);
   return metadata;
+}
+
+/** 初回表示用: 開くページのチャンクだけ先に構築する（総ページ数は後で計測） */
+export function prepareBookDisplay(
+  html: string,
+  params: LayoutParams,
+  initialPage: number
+): ChunkMetadata {
+  return prepareBookDisplayFromBlocks(splitHtmlIntoBlocks(html), params, initialPage);
 }
 
 /** @deprecated prepareBookDisplay を使用してください */
@@ -497,7 +589,10 @@ export function getChunkForPage(
         : direction === "backward"
           ? matching[0]
           : matching[matching.length - 1];
-    return materializeChunk(metadata, selected);
+    const materialized = materializeChunk(metadata, selected);
+    if (isPageInChunk(globalPage, materialized)) {
+      return materialized;
+    }
   }
 
   if (metadata.blocks.length === 0) {
@@ -506,7 +601,7 @@ export function getChunkForPage(
   }
 
   const startPage = resolveChunkStartPageForNavigation(globalPage, direction);
-  const chunk = ensureChunkAtStartPage(metadata, startPage);
+  const chunk = ensureChunkAtStartPage(metadata, startPage, globalPage);
   return materializeChunk(metadata, chunk);
 }
 
