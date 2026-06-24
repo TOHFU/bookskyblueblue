@@ -476,10 +476,6 @@ export function getChunkForPage(
   metadata: ChunkMetadata,
   direction: PageNavigationDirection = "neutral"
 ): CalculatedChunk | null {
-  if (metadata.blocks.length === 0) {
-    return null;
-  }
-
   const matching = findMatchingChunks(metadata, globalPage);
 
   if (matching.length > 0) {
@@ -490,6 +486,11 @@ export function getChunkForPage(
           ? matching[0]
           : matching[matching.length - 1];
     return materializeChunk(metadata, selected);
+  }
+
+  if (metadata.blocks.length === 0) {
+    const lastChunk = metadata.chunks.at(-1);
+    return lastChunk ? materializeChunk(metadata, lastChunk) : null;
   }
 
   const startPage = resolveChunkStartPageForNavigation(globalPage, direction);
