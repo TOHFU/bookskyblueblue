@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { sanitizeHtml, extractMainContent } from "./bookHtmlUtils";
+import { sanitizeHtml, extractMainContent, resolveBookInitialPage } from "./bookHtmlUtils";
 
 describe("sanitizeHtml", () => {
   it("scriptタグを除去する", () => {
@@ -92,5 +92,24 @@ describe("extractMainContent", () => {
     const result = extractMainContent(input);
     expect(result).not.toContain("<script>");
     expect(result).not.toContain("evil");
+  });
+});
+
+describe("resolveBookInitialPage", () => {
+  it("page クエリがないときは保存済みページを使う", () => {
+    expect(resolveBookInitialPage(null, 24)).toBe(24);
+  });
+
+  it("page クエリがあるときはそのページを使う", () => {
+    expect(resolveBookInitialPage("12", 24)).toBe(12);
+  });
+
+  it("page=0 は明示指定として 0 ページを開く", () => {
+    expect(resolveBookInitialPage("0", 24)).toBe(0);
+  });
+
+  it("不正な page クエリは保存済みページにフォールバックする", () => {
+    expect(resolveBookInitialPage("abc", 24)).toBe(24);
+    expect(resolveBookInitialPage("-1", 24)).toBe(24);
   });
 });

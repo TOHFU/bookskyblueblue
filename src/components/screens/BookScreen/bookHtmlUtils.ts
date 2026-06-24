@@ -71,6 +71,23 @@ function extractSentence(text: string): string {
   return sentence.length > 56 ? `${sentence.slice(0, 55)}…` : sentence;
 }
 
+/** URL の page クエリと保存済みページから、初回表示ページを決める */
+export function resolveBookInitialPage(
+  pageParam: string | null,
+  savedPage: number
+): number {
+  if (pageParam === null) {
+    return savedPage;
+  }
+
+  const requestedPage = Number(pageParam);
+  if (!Number.isInteger(requestedPage) || requestedPage < 0) {
+    return savedPage;
+  }
+
+  return requestedPage;
+}
+
 export function extractPageExcerpt(
   rootElement: HTMLElement,
   viewportElement: HTMLElement

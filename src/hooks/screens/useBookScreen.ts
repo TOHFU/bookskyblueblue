@@ -6,7 +6,7 @@ import { clientWorkLibraryRepository } from "@/application/containers/clientWork
 import { getBookStateUseCase } from "@/application/usecases/getBookStateUseCase";
 import { toggleBookmarkUseCase } from "@/application/usecases/toggleBookmarkUseCase";
 import { updateReadingPositionUseCase } from "@/application/usecases/updateReadingPositionUseCase";
-import { extractMainContent, extractPageExcerpt } from "@/components/screens/BookScreen/bookHtmlUtils";
+import { extractMainContent, extractPageExcerpt, resolveBookInitialPage } from "@/components/screens/BookScreen/bookHtmlUtils";
 import type { Bookmark } from "@/domain/entities/work";
 
 const FADE_TIMEOUT_MS = 3000;
@@ -26,6 +26,9 @@ export function useBookScreen(identifier: string) {
   const containerRef = useRef<HTMLDivElement>(null);
   const contentAreaRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
+  const skipReadingPositionSaveRef = useRef(true);
+  const pageCountRef = useRef(pageCount);
+  pageCountRef.current = pageCount;
 
   const showControls = useCallback(() => {
     setControlsVisible(true);
@@ -40,6 +43,8 @@ export function useBookScreen(identifier: string) {
   }, []);
 
   useEffect(() => {
+    skipReadingPositionSaveRef.current = true;
+
     const loadWork = async () => {
       const state = await getBookStateUseCase(clientWorkLibraryRepository, identifier);
       if (!state.content) {
@@ -48,9 +53,7 @@ export function useBookScreen(identifier: string) {
         return;
       }
 
-      const requestedPage = Number(searchParams.get("page"));
-      const initialPage =
-        Number.isInteger(requestedPage) && requestedPage >= 0 ? requestedPage : state.page;
+      const initialPage = resolveBookInitialPage(searchParams.get("page"), state.page);
 
       setHtmlContent(extractMainContent(state.content));
       setCurrentPage(initialPage);
@@ -123,6 +126,24 @@ export function useBookScreen(identifier: string) {
     return () => observer.disconnect();
   }, [calcLayout]);
 
+  useEffect(() => {
+    if (!isReady || htmlContent === null) {
+      return;
+    }
+
+    if (skipReadingPositionSaveRef.current) {
+      skipReadingPositionSaveRef.current = false;
+      return;
+    }
+
+    void updateReadingPositionUseCase(
+      clientWorkLibraryRepository,
+      identifier,
+      currentPage,
+      pageCountRef.current
+    );
+  }, [currentPage, identifier, isReady, htmlContent]);
+
   const handlePrevPage = useCallback(() => {
     showControls();
     if (currentPage <= 0) {
@@ -131,13 +152,7 @@ export function useBookScreen(identifier: string) {
 
     const nextPage = currentPage - 1;
     setCurrentPage(nextPage);
-    void updateReadingPositionUseCase(
-      clientWorkLibraryRepository,
-      identifier,
-      nextPage,
-      pageCount
-    );
-  }, [currentPage, identifier, pageCount, showControls]);
+  }, [currentPage, showControls]);
 
   const handleNextPage = useCallback(() => {
     showControls();
@@ -147,13 +162,7 @@ export function useBookScreen(identifier: string) {
 
     const nextPage = currentPage + 1;
     setCurrentPage(nextPage);
-    void updateReadingPositionUseCase(
-      clientWorkLibraryRepository,
-      identifier,
-      nextPage,
-      pageCount
-    );
-  }, [currentPage, identifier, pageCount, showControls]);
+  }, [currentPage, pageCount, showControls]);
 
   const handleClose = useCallback(() => {
     router.push("/");
