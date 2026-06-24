@@ -1,4 +1,6 @@
 /** imgタグをalt属性のテキストに置換し、スクリプト・危険な属性を除去する */
+import { splitHtmlIntoBlocksImpl } from "./splitHtmlIntoBlocksImpl";
+
 export function sanitizeHtml(html: string): string {
   return html
     // imgタグはaltテキストのみ残す
@@ -133,29 +135,7 @@ function createOffscreenMeasurer(params: LayoutParams): {
 }
 
 export function splitHtmlIntoBlocks(html: string): string[] {
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(`<div id="chunk-root">${html}</div>`, "text/html");
-  const root = doc.getElementById("chunk-root");
-  if (!root) {
-    return [html];
-  }
-
-  const blocks: string[] = [];
-  root.childNodes.forEach((node) => {
-    if (node.nodeType === Node.TEXT_NODE) {
-      const text = node.textContent?.trim();
-      if (text) {
-        blocks.push(text);
-      }
-      return;
-    }
-
-    if (node.nodeType === Node.ELEMENT_NODE) {
-      blocks.push((node as Element).outerHTML);
-    }
-  });
-
-  return blocks.length > 0 ? blocks : [html];
+  return splitHtmlIntoBlocksImpl(html);
 }
 
 function buildChunkContent(blocks: string[], blockStart: number, blockEnd: number): string {
@@ -427,12 +407,11 @@ export function prepareBookDisplayFromCache(
 }
 
 /** 初回表示用: 開くページのチャンクだけ先に構築する（総ページ数は後で計測） */
-export function prepareBookDisplay(
-  html: string,
+export function prepareBookDisplayFromBlocks(
+  blocks: string[],
   params: LayoutParams,
   initialPage: number
 ): ChunkMetadata {
-  const blocks = splitHtmlIntoBlocks(html);
   const isEmpty = blocks.every((block) => !block.trim());
 
   const metadata: ChunkMetadata = {
@@ -451,6 +430,15 @@ export function prepareBookDisplay(
   const initialStartPage = resolveChunkStartPage(initialPage);
   ensureChunkAtStartPage(metadata, initialStartPage);
   return metadata;
+}
+
+/** 初回表示用: 開くページのチャンクだけ先に構築する（総ページ数は後で計測） */
+export function prepareBookDisplay(
+  html: string,
+  params: LayoutParams,
+  initialPage: number
+): ChunkMetadata {
+  return prepareBookDisplayFromBlocks(splitHtmlIntoBlocks(html), params, initialPage);
 }
 
 /** @deprecated prepareBookDisplay を使用してください */
