@@ -18,7 +18,7 @@ import {
 } from "@/components/screens/BookScreen/bookHtmlUtils";
 import {
   splitHtmlIntoBlocksAsync,
-  terminateSplitHtmlWorker,
+  cancelPendingSplitHtmlTasks,
 } from "@/components/screens/BookScreen/splitHtmlIntoBlocksAsync";
 import type { LayoutParams } from "@/components/screens/BookScreen/bookHtmlUtils";
 import {
@@ -280,7 +280,7 @@ export function useBookScreen(identifier: string) {
     return () => {
       cancelDeferredCacheBuild();
       cancelTotalPagesMeasurement();
-      terminateSplitHtmlWorker();
+      cancelPendingSplitHtmlTasks();
       if (resizeRebuildTimerRef.current) {
         clearTimeout(resizeRebuildTimerRef.current);
       }

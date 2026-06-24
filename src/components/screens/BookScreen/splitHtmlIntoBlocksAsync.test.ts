@@ -1,6 +1,7 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
-  resetSplitHtmlWorkerStateForTests,
+  cancelPendingSplitHtmlTasks,
+  resetSplitHtmlIdleStateForTests,
   splitHtmlIntoBlocksAsync,
 } from "./splitHtmlIntoBlocksAsync";
 import { splitHtmlIntoBlocksImpl } from "./splitHtmlIntoBlocksImpl";
@@ -13,8 +14,28 @@ describe("splitHtmlIntoBlocksImpl", () => {
 });
 
 describe("splitHtmlIntoBlocksAsync", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.stubGlobal(
+      "requestIdleCallback",
+      (callback: (deadline: IdleDeadline) => void) =>
+        window.setTimeout(
+          () =>
+            callback({
+              didTimeout: false,
+              timeRemaining: () => 50,
+            }),
+          0
+        )
+    );
+    vi.stubGlobal("cancelIdleCallback", (id: number) => {
+      window.clearTimeout(id);
+    });
+  });
+
   afterEach(() => {
-    resetSplitHtmlWorkerStateForTests();
+    resetSplitHtmlIdleStateForTests();
+    vi.useRealTimers();
     vi.unstubAllGlobals();
     vi.unstubAllEnvs();
   });
@@ -27,41 +48,29 @@ describe("splitHtmlIntoBlocksAsync", () => {
     ]);
   });
 
-  it("Worker が DOMParser エラーを返したらメインスレッドで分割する", async () => {
+  it("本番相当では requestIdleCallback 後に分割する", async () => {
     vi.stubEnv("VITEST", "");
 
     const html = "<p>あ</p><p>い</p>";
-    const postMessage = vi.fn(({ id }: { id: number }) => {
-      queueMicrotask(() => {
-        onmessage?.({
-          data: { id, error: "DOMParser is not available in Worker" },
-        } as MessageEvent);
-      });
-    });
-    let onmessage: ((event: MessageEvent) => void) | null = null;
+    const resultPromise = splitHtmlIntoBlocksAsync(html);
 
-    vi.stubGlobal("Worker", function MockWorker(this: Worker) {
-      this.postMessage = postMessage as Worker["postMessage"];
-      Object.defineProperty(this, "onmessage", {
-        set(handler: (event: MessageEvent) => void) {
-          onmessage = handler;
-        },
-        get() {
-          return onmessage;
-        },
-      });
-      this.terminate = vi.fn();
-    });
+    await vi.runAllTimersAsync();
 
-    await expect(splitHtmlIntoBlocksAsync(html)).resolves.toEqual([
-      "<p>あ</p>",
-      "<p>い</p>",
+    await expect(resultPromise).resolves.toEqual(["<p>あ</p>", "<p>い</p>"]);
+  });
+
+  it("cancelPendingSplitHtmlTasks で保留中の分割をキャンセルできる", async () => {
+    vi.stubEnv("VITEST", "");
+
+    const html = "<p>あ</p>";
+    const resultPromise = splitHtmlIntoBlocksAsync(html);
+    cancelPendingSplitHtmlTasks();
+
+    const settled = await Promise.race([
+      resultPromise.then(() => "resolved"),
+      Promise.resolve("pending"),
     ]);
 
-    await expect(splitHtmlIntoBlocksAsync(html)).resolves.toEqual([
-      "<p>あ</p>",
-      "<p>い</p>",
-    ]);
-    expect(postMessage).toHaveBeenCalledTimes(1);
+    expect(settled).toBe("pending");
   });
 });
