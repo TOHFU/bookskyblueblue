@@ -71,6 +71,315 @@ function extractSentence(text: string): string {
   return sentence.length > 56 ? `${sentence.slice(0, 55)}…` : sentence;
 }
 
+export const CHUNK_SIZE = 20;
+/** チャンク境界付近でスライドアニメーションを維持するための重複ページ数 */
+export const CHUNK_OVERLAP_PAGES = 2;
+
+export type LayoutParams = {
+  columnWidth: number;
+  containerHeight: number;
+  containerWidth: number;
+};
+
+export type PageNavigationDirection = "forward" | "backward" | "neutral";
+
+export type CalculatedChunk = {
+  chunkId: number;
+  startPage: number;
+  endPage: number;
+  content: string;
+  blockStart: number;
+  blockEnd: number;
+};
+
+export type ChunkMetadata = {
+  totalPages: number;
+  totalChunks: number;
+  chunks: CalculatedChunk[];
+  blocks: string[];
+  layoutParams: LayoutParams;
+};
+
+function measurePageCount(element: HTMLElement, params: LayoutParams): number {
+  const { columnWidth, containerWidth } = params;
+  const columnsPerPage = Math.max(1, Math.floor(containerWidth / columnWidth));
+  const totalWidth = element.offsetWidth;
+  const totalColumns = Math.ceil(totalWidth / columnWidth);
+  return Math.max(1, Math.ceil(totalColumns / columnsPerPage));
+}
+
+function createOffscreenMeasurer(params: LayoutParams): {
+  root: HTMLDivElement;
+  content: HTMLDivElement;
+} {
+  const root = document.createElement("div");
+  root.style.cssText = [
+    "position:fixed",
+    "left:-99999px",
+    "top:0",
+    "visibility:hidden",
+    "overflow:hidden",
+    `height:${params.containerHeight}px`,
+    `width:${params.containerWidth}px`,
+  ].join(";");
+  const content = document.createElement("div");
+  content.className = "book-content";
+  content.style.height = "100%";
+  root.appendChild(content);
+  document.body.appendChild(root);
+  return { root, content };
+}
+
+export function splitHtmlIntoBlocks(html: string): string[] {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(`<div id="chunk-root">${html}</div>`, "text/html");
+  const root = doc.getElementById("chunk-root");
+  if (!root) {
+    return [html];
+  }
+
+  const blocks: string[] = [];
+  root.childNodes.forEach((node) => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      const text = node.textContent?.trim();
+      if (text) {
+        blocks.push(text);
+      }
+      return;
+    }
+
+    if (node.nodeType === Node.ELEMENT_NODE) {
+      blocks.push((node as Element).outerHTML);
+    }
+  });
+
+  return blocks.length > 0 ? blocks : [html];
+}
+
+function buildChunkContent(blocks: string[], blockStart: number, blockEnd: number): string {
+  return blocks.slice(blockStart, blockEnd + 1).join("");
+}
+
+class BlockMeasurer {
+  private readonly root: HTMLDivElement;
+  private readonly content: HTMLDivElement;
+  private readonly prefixCache = new Map<number, number>();
+
+  constructor(private readonly params: LayoutParams) {
+    const { root, content } = createOffscreenMeasurer(params);
+    this.root = root;
+    this.content = content;
+  }
+
+  measurePrefix(blocks: string[], endIndex: number): number {
+    const cached = this.prefixCache.get(endIndex);
+    if (cached !== undefined) {
+      return cached;
+    }
+
+    this.content.innerHTML = blocks.slice(0, endIndex + 1).join("");
+    const pages = measurePageCount(this.content, this.params);
+    this.prefixCache.set(endIndex, pages);
+    return pages;
+  }
+
+  dispose(): void {
+    document.body.removeChild(this.root);
+  }
+}
+
+function findBlockForPageStart(
+  blocks: string[],
+  page: number,
+  measurer: BlockMeasurer
+): number {
+  if (page === 0) {
+    return 0;
+  }
+
+  let lo = 0;
+  let hi = blocks.length - 1;
+
+  while (lo < hi) {
+    const mid = Math.floor((lo + hi) / 2);
+    if (measurer.measurePrefix(blocks, mid) < page + 1) {
+      lo = mid + 1;
+    } else {
+      hi = mid;
+    }
+  }
+
+  return lo;
+}
+
+function resolveChunkStartPage(globalPage: number): number {
+  const nominalStart = Math.floor(globalPage / CHUNK_SIZE) * CHUNK_SIZE;
+  if (nominalStart === 0) {
+    return 0;
+  }
+  return Math.max(0, nominalStart - CHUNK_OVERLAP_PAGES);
+}
+
+function buildChunkAtStartPage(
+  blocks: string[],
+  totalPages: number,
+  params: LayoutParams,
+  startPage: number,
+  chunkId: number
+): CalculatedChunk {
+  const measurer = new BlockMeasurer(params);
+
+  try {
+    const blockStart = findBlockForPageStart(blocks, startPage, measurer);
+    const lastPageInChunk = Math.min(startPage + CHUNK_SIZE, totalPages) - 1;
+    const blockEnd = findBlockForPageStart(blocks, lastPageInChunk, measurer);
+    const pagesBeforeStart = blockStart > 0 ? measurer.measurePrefix(blocks, blockStart - 1) : 0;
+    const pagesThroughEnd = measurer.measurePrefix(blocks, blockEnd);
+    const chunkPages = pagesThroughEnd - pagesBeforeStart;
+
+    return {
+      chunkId,
+      startPage,
+      endPage: startPage + chunkPages,
+      blockStart,
+      blockEnd,
+      content: buildChunkContent(blocks, blockStart, blockEnd),
+    };
+  } finally {
+    measurer.dispose();
+  }
+}
+
+function findMatchingChunks(
+  metadata: ChunkMetadata,
+  globalPage: number
+): CalculatedChunk[] {
+  return metadata.chunks.filter(
+    (entry) => globalPage >= entry.startPage && globalPage < entry.endPage
+  );
+}
+
+function ensureChunkAtStartPage(
+  metadata: ChunkMetadata,
+  startPage: number
+): CalculatedChunk {
+  const existing = metadata.chunks.find((chunk) => chunk.startPage === startPage);
+  if (existing) {
+    return existing;
+  }
+
+  const chunk = buildChunkAtStartPage(
+    metadata.blocks,
+    metadata.totalPages,
+    metadata.layoutParams,
+    startPage,
+    metadata.chunks.length
+  );
+  metadata.chunks.push(chunk);
+  metadata.chunks.sort((left, right) => left.startPage - right.startPage);
+  return chunk;
+}
+
+function resolveChunkStartPageForNavigation(
+  globalPage: number,
+  direction: PageNavigationDirection
+): number {
+  const nominalStart = Math.floor(globalPage / CHUNK_SIZE) * CHUNK_SIZE;
+
+  if (direction === "backward" && globalPage < nominalStart + CHUNK_OVERLAP_PAGES) {
+    const previousStart = nominalStart - CHUNK_SIZE;
+    if (previousStart <= 0) {
+      return 0;
+    }
+    return Math.max(0, previousStart - CHUNK_OVERLAP_PAGES);
+  }
+
+  return resolveChunkStartPage(globalPage);
+}
+
+/** 初回表示用: 総ページ数の計測と、開くページのチャンクだけを構築する */
+export function prepareBookDisplay(
+  html: string,
+  params: LayoutParams,
+  initialPage: number
+): ChunkMetadata {
+  const blocks = splitHtmlIntoBlocks(html);
+  const totalPages =
+    blocks.length === 0 ? 1 : estimatePageCountFromHtml(html, params);
+
+  const metadata: ChunkMetadata = {
+    totalPages,
+    totalChunks: Math.max(1, Math.ceil(totalPages / CHUNK_SIZE)),
+    chunks: [],
+    blocks,
+    layoutParams: params,
+  };
+
+  if (blocks.length === 0) {
+    return metadata;
+  }
+
+  const initialStartPage = resolveChunkStartPage(initialPage);
+  ensureChunkAtStartPage(metadata, initialStartPage);
+  return metadata;
+}
+
+/** @deprecated prepareBookDisplay を使用してください */
+export function splitIntoChunks(html: string, params: LayoutParams): ChunkMetadata {
+  return prepareBookDisplay(html, params, 0);
+}
+
+/** 非表示コンテナで HTML のページ数を推定する */
+export function estimatePageCountFromHtml(html: string, params: LayoutParams): number {
+  const { root, content } = createOffscreenMeasurer(params);
+  try {
+    content.innerHTML = html;
+    return measurePageCount(content, params);
+  } finally {
+    document.body.removeChild(root);
+  }
+}
+
+export function materializeChunk(
+  metadata: ChunkMetadata,
+  chunk: CalculatedChunk
+): CalculatedChunk {
+  if (chunk.content) {
+    return chunk;
+  }
+
+  return {
+    ...chunk,
+    content: buildChunkContent(metadata.blocks, chunk.blockStart, chunk.blockEnd),
+  };
+}
+
+export function getChunkForPage(
+  globalPage: number,
+  metadata: ChunkMetadata,
+  direction: PageNavigationDirection = "neutral"
+): CalculatedChunk | null {
+  if (metadata.blocks.length === 0) {
+    return null;
+  }
+
+  const matching = findMatchingChunks(metadata, globalPage);
+
+  if (matching.length > 0) {
+    const selected =
+      matching.length === 1
+        ? matching[0]
+        : direction === "backward"
+          ? matching[0]
+          : matching[matching.length - 1];
+    return materializeChunk(metadata, selected);
+  }
+
+  const startPage = resolveChunkStartPageForNavigation(globalPage, direction);
+  const chunk = ensureChunkAtStartPage(metadata, startPage);
+  return materializeChunk(metadata, chunk);
+}
+
 export function extractPageExcerpt(
   rootElement: HTMLElement,
   viewportElement: HTMLElement

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { sanitizeHtml, extractMainContent } from "./bookHtmlUtils";
+import { sanitizeHtml, extractMainContent, getChunkForPage } from "./bookHtmlUtils";
+import type { ChunkMetadata } from "./bookHtmlUtils";
 
 describe("sanitizeHtml", () => {
   it("scriptタグを除去する", () => {
@@ -92,5 +93,61 @@ describe("extractMainContent", () => {
     const result = extractMainContent(input);
     expect(result).not.toContain("<script>");
     expect(result).not.toContain("evil");
+  });
+});
+
+describe("getChunkForPage", () => {
+  const metadata: ChunkMetadata = {
+    totalPages: 45,
+    totalChunks: 3,
+    blocks: [],
+    layoutParams: {
+      columnWidth: 32,
+      containerHeight: 600,
+      containerWidth: 300,
+    },
+    chunks: [
+      {
+        chunkId: 0,
+        startPage: 0,
+        endPage: 20,
+        blockStart: 0,
+        blockEnd: 0,
+        content: "<p>chunk0</p>",
+      },
+      {
+        chunkId: 1,
+        startPage: 18,
+        endPage: 40,
+        blockStart: 1,
+        blockEnd: 1,
+        content: "<p>chunk1</p>",
+      },
+      {
+        chunkId: 2,
+        startPage: 38,
+        endPage: 45,
+        blockStart: 2,
+        blockEnd: 2,
+        content: "<p>chunk2</p>",
+      },
+    ],
+  };
+
+  it("グローバルページ番号に対応するチャンクを返す", () => {
+    expect(getChunkForPage(0, metadata)?.chunkId).toBe(0);
+    expect(getChunkForPage(17, metadata)?.chunkId).toBe(0);
+    expect(getChunkForPage(20, metadata, "forward")?.chunkId).toBe(1);
+    expect(getChunkForPage(39, metadata, "forward")?.chunkId).toBe(2);
+    expect(getChunkForPage(44, metadata)?.chunkId).toBe(2);
+  });
+
+  it("オーバーラップ範囲では遷移方向に応じてチャンクを選ぶ", () => {
+    expect(getChunkForPage(19, metadata, "forward")?.chunkId).toBe(1);
+    expect(getChunkForPage(19, metadata, "backward")?.chunkId).toBe(0);
+  });
+
+  it("範囲外のページ番号では最後のチャンクを返す", () => {
+    expect(getChunkForPage(999, metadata)?.chunkId).toBe(2);
   });
 });
