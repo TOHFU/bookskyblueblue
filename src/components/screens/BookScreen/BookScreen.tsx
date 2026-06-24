@@ -25,6 +25,7 @@ export function BookScreen({ identifier }: BookScreenProps) {
     isChunkTransitioning,
     controlsVisible,
     isReady,
+    totalPagesKnown,
     isCurrentPageBookmarked,
     isOddPageNumber,
     containerRef,
@@ -166,7 +167,7 @@ export function BookScreen({ identifier }: BookScreenProps) {
             w="11"
             h="11"
             onClick={handleNextPage}
-            disabled={currentPage >= pageCount - 1}
+            disabled={totalPagesKnown && currentPage >= pageCount - 1}
           >
             <ChevronLeft size={20} />
           </IconButton>
