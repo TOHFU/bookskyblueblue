@@ -55,7 +55,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="ja" suppressHydrationWarning style={htmlStyle}>
       <head />
-      <body>
+      <body suppressHydrationWarning>
         <GtmLoader gtmId="GTM-MFM4MWH4" />
         <noscript>
           <iframe
