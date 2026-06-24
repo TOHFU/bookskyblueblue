@@ -30,6 +30,7 @@ function createMetadata(overrides: Partial<ChunkMetadata> = {}): ChunkMetadata {
       {
         chunkId: 0,
         startPage: 0,
+        contentStartPage: 0,
         endPage: 20,
         blockStart: 0,
         blockEnd: 0,
@@ -47,6 +48,7 @@ describe("createStoredBookLayout", () => {
         {
           chunkId: 1,
           startPage: 18,
+          contentStartPage: 18,
           endPage: 40,
           blockStart: 1,
           blockEnd: 1,
@@ -55,6 +57,7 @@ describe("createStoredBookLayout", () => {
         {
           chunkId: 0,
           startPage: 0,
+          contentStartPage: 0,
           endPage: 20,
           blockStart: 0,
           blockEnd: 0,

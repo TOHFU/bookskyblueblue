@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { clientWorkLibraryRepository } from "@/application/containers/clientWorkContainer";
 import { getBookStateUseCase } from "@/application/usecases/getBookStateUseCase";
@@ -12,7 +12,8 @@ import {
   prepareBookDisplayFromBlocks,
   prepareBookDisplayFromCache,
   getChunkForPage,
-  isPageInChunk,
+  isPageRenderableInChunk,
+  measureTranslateXForPage,
   createLayoutKey,
   hashBookContent,
 } from "@/components/screens/BookScreen/bookHtmlUtils";
@@ -52,7 +53,8 @@ export function useBookScreen(identifier: string) {
   const [currentPage, setCurrentPage] = useState(0);
   const [pageCount, setPageCount] = useState(1);
   const [contentAreaWidth, setContentAreaWidth] = useState(0);
-  const [chunkStartPage, setChunkStartPage] = useState(0);
+  const [contentStartPage, setContentStartPage] = useState(0);
+  const [pageTranslateX, setPageTranslateX] = useState(0);
   const [isChunkTransitioning, setIsChunkTransitioning] = useState(false);
   const [controlsVisible, setControlsVisible] = useState(true);
   const [isReady, setIsReady] = useState(false);
@@ -77,6 +79,9 @@ export function useBookScreen(identifier: string) {
   const cancelTotalPagesMeasurementRef = useRef<(() => void) | null>(null);
   const resizeRebuildTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const rebuildGenerationRef = useRef(0);
+  const initialLayoutSyncedRef = useRef(false);
+  const contentStartPageRef = useRef(0);
+  const displayReconcileRef = useRef(0);
 
   const pageCountRef = useRef(1);
   const currentPageRef = useRef(0);
@@ -86,10 +91,13 @@ export function useBookScreen(identifier: string) {
     containerWidth: number;
   } | null>(null);
 
-  const localPage = currentPage - chunkStartPage;
+  useEffect(() => {
+    contentStartPageRef.current = contentStartPage;
+  }, [contentStartPage]);
 
   useEffect(() => {
     currentPageRef.current = currentPage;
+    displayReconcileRef.current = 0;
   }, [currentPage]);
 
   const cancelDeferredCacheBuild = useCallback(() => {
@@ -152,7 +160,7 @@ export function useBookScreen(identifier: string) {
     chunkMetadataRef.current = metadata;
     setTotalPagesKnown(metadata.totalPagesKnown);
     currentChunkRef.current = chunk;
-    setChunkStartPage(chunk.startPage);
+    setContentStartPage(chunk.contentStartPage);
     setHtmlContent(chunk.content);
     setCurrentPage(clampedPage);
 
@@ -166,7 +174,6 @@ export function useBookScreen(identifier: string) {
       }
 
       if (!cached) {
-        flushCurrentLayoutCache(false);
         cancelTotalPagesMeasurement();
         cancelTotalPagesMeasurementRef.current = scheduleTotalPagesMeasurement({
           html,
@@ -267,13 +274,16 @@ export function useBookScreen(identifier: string) {
     currentChunkRef.current = null;
     layoutKeyRef.current = "";
     contentHashRef.current = "";
-    setChunkStartPage(0);
+    setContentStartPage(0);
+    setPageTranslateX(0);
+    displayReconcileRef.current = 0;
     setIsChunkTransitioning(false);
     setIsReady(false);
     setContentLoaded(false);
     setLayoutContainerReady(false);
     setHtmlContent(null);
     setTotalPagesKnown(true);
+    initialLayoutSyncedRef.current = false;
   }, [cancelDeferredCacheBuild, cancelTotalPagesMeasurement, identifier]);
 
   useEffect(() => {
@@ -360,6 +370,53 @@ export function useBookScreen(identifier: string) {
     }
   }, []);
 
+  const syncDisplayLayout = useCallback(() => {
+    calcLayout();
+
+    const contentElement = innerRef.current;
+    const params = layoutParamsRef.current;
+    const metadata = chunkMetadataRef.current;
+    const activeChunk = currentChunkRef.current;
+    const page = currentPageRef.current;
+
+    if (!contentElement || !params) {
+      return;
+    }
+
+    if (metadata) {
+      metadata.layoutParams = params;
+    }
+
+    if (
+      metadata &&
+      activeChunk &&
+      !isPageRenderableInChunk(page, activeChunk, contentElement, params) &&
+      displayReconcileRef.current < 3
+    ) {
+      displayReconcileRef.current += 1;
+      metadata.chunks = metadata.chunks.filter(
+        (chunk) => chunk.startPage !== activeChunk.startPage
+      );
+      const rebuilt = getChunkForPage(page, metadata, "neutral");
+      if (rebuilt) {
+        currentChunkRef.current = rebuilt;
+        contentStartPageRef.current = rebuilt.contentStartPage;
+        setContentStartPage(rebuilt.contentStartPage);
+        setHtmlContent(rebuilt.content);
+        return;
+      }
+    }
+
+    setPageTranslateX(
+      measureTranslateXForPage(
+        contentElement,
+        page,
+        contentStartPageRef.current,
+        params
+      )
+    );
+  }, [calcLayout]);
+
   useEffect(() => {
     const contentArea = contentAreaRef.current;
     if (!contentArea) {
@@ -419,7 +476,6 @@ export function useBookScreen(identifier: string) {
       }
 
       chunksInitializedRef.current = true;
-      setIsReady(true);
     };
 
     void initializeDisplay();
@@ -434,12 +490,52 @@ export function useBookScreen(identifier: string) {
       return;
     }
 
+    syncDisplayLayout();
+  }, [htmlContent, syncDisplayLayout]);
+
+  useLayoutEffect(() => {
+    if (!chunksInitializedRef.current || !htmlContent) {
+      return;
+    }
+
+    syncDisplayLayout();
+  }, [currentPage, contentStartPage, htmlContent, isReady, syncDisplayLayout]);
+
+  useEffect(() => {
+    if (!chunksInitializedRef.current || !htmlContent || initialLayoutSyncedRef.current) {
+      return;
+    }
+
+    if (!innerRef.current || !contentAreaRef.current) {
+      return;
+    }
+
     calcLayout();
-  }, [htmlContent, calcLayout]);
+
+    const params = layoutParamsRef.current;
+    if (!params) {
+      return;
+    }
+
+    initialLayoutSyncedRef.current = true;
+
+    let cancelled = false;
+
+    void (async () => {
+      await rebuildBookDisplay(params, currentPageRef.current);
+      if (!cancelled) {
+        setIsReady(true);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [calcLayout, htmlContent, rebuildBookDisplay]);
 
   const applyChunk = useCallback((chunk: CalculatedChunk) => {
     currentChunkRef.current = chunk;
-    setChunkStartPage(chunk.startPage);
+    setContentStartPage(chunk.contentStartPage);
     setHtmlContent(chunk.content);
   }, []);
 
@@ -447,8 +543,16 @@ export function useBookScreen(identifier: string) {
     (nextPage: number, direction: "forward" | "backward") => {
       const metadata = chunkMetadataRef.current;
       const activeChunk = currentChunkRef.current;
+      const layoutParams = layoutParamsRef.current;
+      const contentElement = innerRef.current;
 
-      if (activeChunk && isPageInChunk(nextPage, activeChunk)) {
+      const canStayInActiveChunk =
+        activeChunk &&
+        layoutParams &&
+        contentElement &&
+        isPageRenderableInChunk(nextPage, activeChunk, contentElement, layoutParams);
+
+      if (canStayInActiveChunk) {
         setCurrentPage(nextPage);
         void updateReadingPositionUseCase(
           clientWorkLibraryRepository,
@@ -462,28 +566,8 @@ export function useBookScreen(identifier: string) {
       if (metadata) {
         const nextChunk = getChunkForPage(nextPage, metadata, direction);
         if (nextChunk && nextChunk.chunkId !== activeChunk?.chunkId) {
-          const canForwardPreSwitch =
-            direction === "forward" && isPageInChunk(currentPage, nextChunk);
-
           setIsChunkTransitioning(true);
           applyChunk(nextChunk);
-
-          if (canForwardPreSwitch) {
-            requestAnimationFrame(() => {
-              setIsChunkTransitioning(false);
-              requestAnimationFrame(() => {
-                setCurrentPage(nextPage);
-                void updateReadingPositionUseCase(
-                  clientWorkLibraryRepository,
-                  identifier,
-                  nextPage,
-                  pageCountRef.current
-                );
-              });
-            });
-            return;
-          }
-
           setCurrentPage(nextPage);
           void updateReadingPositionUseCase(
             clientWorkLibraryRepository,
@@ -496,6 +580,34 @@ export function useBookScreen(identifier: string) {
           });
           return;
         }
+
+        if (nextChunk && nextChunk.chunkId === activeChunk?.chunkId) {
+          const needsRebuild =
+            layoutParams &&
+            contentElement &&
+            !isPageRenderableInChunk(nextPage, nextChunk, contentElement, layoutParams);
+          if (needsRebuild && metadata) {
+            metadata.layoutParams = layoutParams;
+            const startPage = nextChunk.startPage;
+            metadata.chunks = metadata.chunks.filter((chunk) => chunk.startPage !== startPage);
+            const rebuilt = getChunkForPage(nextPage, metadata, direction);
+            if (rebuilt) {
+              setIsChunkTransitioning(true);
+              applyChunk(rebuilt);
+              setCurrentPage(nextPage);
+              void updateReadingPositionUseCase(
+                clientWorkLibraryRepository,
+                identifier,
+                nextPage,
+                pageCountRef.current
+              );
+              requestAnimationFrame(() => {
+                setIsChunkTransitioning(false);
+              });
+              return;
+            }
+          }
+        }
       }
 
       setCurrentPage(nextPage);
@@ -506,7 +618,7 @@ export function useBookScreen(identifier: string) {
         pageCountRef.current
       );
     },
-    [applyChunk, currentPage, identifier]
+    [applyChunk, identifier]
   );
 
   useEffect(() => {
@@ -594,7 +706,7 @@ export function useBookScreen(identifier: string) {
   return {
     htmlContent,
     currentPage,
-    localPage,
+    pageTranslateX,
     pageCount,
     contentAreaWidth,
     isChunkTransitioning,

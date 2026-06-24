@@ -19,7 +19,7 @@ export function BookScreen({ identifier }: BookScreenProps) {
   const {
     htmlContent,
     currentPage,
-    localPage,
+    pageTranslateX,
     pageCount,
     contentAreaWidth,
     isChunkTransitioning,
@@ -88,7 +88,7 @@ export function BookScreen({ identifier }: BookScreenProps) {
             h="full"
             style={{
               opacity: isReady ? undefined : 0,
-              transform: `translateX(${localPage * contentAreaWidth}px)`,
+              transform: `translateX(${pageTranslateX}px)`,
               transition:
                 isReady && !isChunkTransitioning ? "transform 0.3s ease" : "none",
             }}
