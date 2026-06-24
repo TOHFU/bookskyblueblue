@@ -4,6 +4,9 @@ import {
   extractMainContent,
   getChunkForPage,
   isPageInChunk,
+  isPageRenderableInChunk,
+  measureTranslateXForPage,
+  getEffectiveContainerWidth,
   createLayoutKey,
   hashBookContent,
   hydrateMetadataFromCache,
@@ -125,6 +128,7 @@ describe("getChunkForPage", () => {
       {
         chunkId: 0,
         startPage: 0,
+        contentStartPage: 0,
         endPage: 20,
         blockStart: 0,
         blockEnd: 0,
@@ -133,6 +137,7 @@ describe("getChunkForPage", () => {
       {
         chunkId: 1,
         startPage: 18,
+        contentStartPage: 18,
         endPage: 40,
         blockStart: 1,
         blockEnd: 1,
@@ -141,6 +146,7 @@ describe("getChunkForPage", () => {
       {
         chunkId: 2,
         startPage: 38,
+        contentStartPage: 38,
         endPage: 45,
         blockStart: 2,
         blockEnd: 2,
@@ -172,10 +178,87 @@ describe("getChunkForPage", () => {
   });
 });
 
+describe("isPageRenderableInChunk", () => {
+  const params = {
+    columnWidth: 32,
+    containerHeight: 600,
+    containerWidth: 300,
+  };
+
+  it("メタデータ上は範囲内でも描画ページ数を超える場合はfalseを返す", () => {
+    const paragraph = "<p>あいうえおかきくけこさしすせそたちつてと</p>";
+    const contentHtml = Array.from({ length: 8 }, () => paragraph).join("");
+    const chunk = {
+      chunkId: 0,
+      startPage: 0,
+      contentStartPage: 0,
+      endPage: 25,
+      blockStart: 0,
+      blockEnd: 7,
+      content: contentHtml,
+    };
+
+    const measurerRoot = document.createElement("div");
+    measurerRoot.className = "book-content";
+    measurerRoot.style.cssText =
+      "position:fixed;left:-99999px;visibility:hidden;height:600px;width:288px;overflow:hidden;";
+    const content = document.createElement("div");
+    content.className = "book-content";
+    content.style.cssText = "position:absolute;right:0;top:0;height:100%;width:max-content;";
+    content.innerHTML = contentHtml;
+    measurerRoot.appendChild(content);
+    document.body.appendChild(measurerRoot);
+
+    try {
+      expect(isPageInChunk(19, chunk)).toBe(true);
+      expect(isPageRenderableInChunk(19, chunk, content, params)).toBe(false);
+    } finally {
+      document.body.removeChild(measurerRoot);
+    }
+  });
+});
+
+describe("measureTranslateXForPage", () => {
+  const params = {
+    columnWidth: 32,
+    containerHeight: 600,
+    containerWidth: 300,
+  };
+
+  it("コンテンツ幅を超えないようtranslateXをクランプする", () => {
+    const content = document.createElement("div");
+    Object.defineProperty(content, "offsetWidth", {
+      configurable: true,
+      value: 320,
+    });
+
+    expect(measureTranslateXForPage(content, 19, 0, params)).toBe(32);
+
+    Object.defineProperty(content, "offsetWidth", {
+      configurable: true,
+      value: 1200,
+    });
+    expect(measureTranslateXForPage(content, 1, 0, params)).toBe(288);
+  });
+});
+
+describe("getEffectiveContainerWidth", () => {
+  it("列幅の倍数にスナップした表示幅を返す", () => {
+    expect(
+      getEffectiveContainerWidth({
+        columnWidth: 32,
+        containerHeight: 600,
+        containerWidth: 390,
+      })
+    ).toBe(384);
+  });
+});
+
 describe("isPageInChunk", () => {
   const chunk = {
     chunkId: 1,
     startPage: 18,
+    contentStartPage: 16,
     endPage: 40,
     blockStart: 1,
     blockEnd: 1,
@@ -183,10 +266,10 @@ describe("isPageInChunk", () => {
   };
 
   it("チャンク範囲内のページを判定する", () => {
+    expect(isPageInChunk(16, chunk)).toBe(true);
     expect(isPageInChunk(18, chunk)).toBe(true);
-    expect(isPageInChunk(19, chunk)).toBe(true);
     expect(isPageInChunk(39, chunk)).toBe(true);
-    expect(isPageInChunk(17, chunk)).toBe(false);
+    expect(isPageInChunk(15, chunk)).toBe(false);
     expect(isPageInChunk(40, chunk)).toBe(false);
   });
 });
@@ -249,8 +332,57 @@ describe("hydrateMetadataFromCache", () => {
     );
 
     expect(metadata.totalPages).toBe(45);
+    expect(metadata.totalPagesKnown).toBe(true);
     expect(metadata.chunks).toHaveLength(2);
     expect(metadata.chunks[0]?.content).toContain("chunk0");
+  });
+
+  it("未完了キャッシュでは総ページ数を未計測として扱う", () => {
+    const blocks = ["<p>chunk0</p>"];
+    const metadata = hydrateMetadataFromCache(
+      blocks,
+      {
+        columnWidth: 32,
+        containerHeight: 600,
+        containerWidth: 300,
+      },
+      { ...cached, isComplete: false, totalPages: 1 }
+    );
+
+    expect(metadata.totalPagesKnown).toBe(false);
+    expect(metadata.totalPages).toBe(1);
+  });
+
+  it("保存済みendPageより実ブロック範囲を優先してページ境界を再計算する", () => {
+    const paragraph = "<p>あいうえおかきくけこ</p>";
+    const blocks = Array.from({ length: 40 }, () => paragraph);
+    const metadata = hydrateMetadataFromCache(
+      blocks,
+      {
+        columnWidth: 32,
+        containerHeight: 600,
+        containerWidth: 300,
+      },
+      {
+        ...cached,
+        totalPages: 45,
+        isComplete: true,
+        chunkBoundaries: [
+          {
+            chunkId: 1,
+            startPage: 18,
+            endPage: 40,
+            blockStart: 0,
+            blockEnd: 2,
+          },
+        ],
+      }
+    );
+
+    const chunk = metadata.chunks[0];
+    expect(chunk).toBeDefined();
+    expect(chunk!.endPage).toBeLessThan(40);
+    expect(isPageInChunk(37, chunk!)).toBe(false);
   });
 });
 
@@ -280,6 +412,42 @@ describe("prepareBookDisplayFromCache", () => {
 
     expect(metadata.totalPages).toBe(45);
     expect(metadata.chunks).toHaveLength(1);
+  });
+
+  it("過大なendPageのキャッシュでも深いページを開ける", () => {
+    const paragraph = "<p>あいうえおかきくけこさしすせそたちつてとなにぬねの</p>";
+    const blocks = Array.from({ length: 80 }, () => paragraph);
+    const cached: StoredBookLayout = {
+      id: "work-1:32:600:300",
+      workId: "work-1",
+      layoutKey: "32:600:300",
+      contentHash: "100:123",
+      totalPages: 1,
+      totalChunks: 1,
+      updatedAt: 0,
+      isComplete: false,
+      chunkBoundaries: [
+        {
+          chunkId: 1,
+          startPage: 18,
+          endPage: 40,
+          blockStart: 0,
+          blockEnd: 3,
+        },
+      ],
+    };
+
+    const metadata = prepareBookDisplayFromCache(
+      blocks,
+      { columnWidth: 32, containerHeight: 600, containerWidth: 300 },
+      cached,
+      37
+    );
+
+    const chunk = getChunkForPage(37, metadata, "neutral");
+    expect(chunk).not.toBeNull();
+    expect(isPageInChunk(37, chunk!)).toBe(true);
+    expect(chunk!.content.length).toBeGreaterThan(blocks[0]!.length);
   });
 });
 

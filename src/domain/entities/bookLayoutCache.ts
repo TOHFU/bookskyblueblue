@@ -1,6 +1,7 @@
 export type StoredChunkBoundary = {
   chunkId: number;
   startPage: number;
+  contentStartPage?: number;
   endPage: number;
   blockStart: number;
   blockEnd: number;
