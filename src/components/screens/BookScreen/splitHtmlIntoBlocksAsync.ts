@@ -1,101 +1,58 @@
 import { splitHtmlIntoBlocksImpl } from "./splitHtmlIntoBlocksImpl";
 
-type PendingRequest = {
-  html: string;
-  resolve: (blocks: string[]) => void;
-};
+type IdleRequestCallback = (deadline: IdleDeadline) => void;
 
-let worker: Worker | null = null;
-let workerUsable = true;
-let requestId = 0;
-const pendingRequests = new Map<number, PendingRequest>();
+const pendingIdleTasks = new Set<number>();
 
 function isTestEnvironment(): boolean {
   return typeof process !== "undefined" && process.env.VITEST === "true";
 }
 
-function shouldUseWorker(): boolean {
-  return (
-    workerUsable &&
-    typeof window !== "undefined" &&
-    typeof Worker !== "undefined" &&
-    !isTestEnvironment()
-  );
-}
-
-function splitOnMainThread(html: string): string[] {
-  return splitHtmlIntoBlocksImpl(html);
-}
-
-function disableWorker(): void {
-  workerUsable = false;
-  worker?.terminate();
-  worker = null;
-}
-
-function fallbackAllPendingToMainThread(): void {
-  for (const [, pending] of pendingRequests) {
-    pending.resolve(splitOnMainThread(pending.html));
-  }
-  pendingRequests.clear();
-}
-
-function getWorker(): Worker {
-  if (!worker) {
-    worker = new Worker(new URL("./splitHtmlIntoBlocks.worker.ts", import.meta.url));
-    worker.onmessage = (event: MessageEvent<{ id: number; blocks?: string[]; error?: string }>) => {
-      const { id, blocks, error } = event.data;
-
-      if (error || !blocks) {
-        disableWorker();
-        fallbackAllPendingToMainThread();
-        return;
-      }
-
-      const pending = pendingRequests.get(id);
-      if (!pending) {
-        return;
-      }
-
-      pendingRequests.delete(id);
-      pending.resolve(blocks);
-    };
-    worker.onerror = () => {
-      disableWorker();
-      fallbackAllPendingToMainThread();
-    };
+function requestIdleTask(callback: IdleRequestCallback): number {
+  if (typeof requestIdleCallback === "function") {
+    return requestIdleCallback(callback);
   }
 
-  return worker;
+  return window.setTimeout(() => {
+    callback({
+      didTimeout: false,
+      timeRemaining: () => 0,
+    });
+  }, 0);
 }
 
-export function terminateSplitHtmlWorker(): void {
-  pendingRequests.clear();
-  worker?.terminate();
-  worker = null;
+function cancelIdleTask(taskId: number): void {
+  if (typeof cancelIdleCallback === "function") {
+    cancelIdleCallback(taskId);
+    return;
+  }
+
+  window.clearTimeout(taskId);
 }
 
+export function cancelPendingSplitHtmlTasks(): void {
+  for (const taskId of pendingIdleTasks) {
+    cancelIdleTask(taskId);
+  }
+  pendingIdleTasks.clear();
+}
+
+/** アイドル時にメインスレッドで HTML をブロック分割する */
 export function splitHtmlIntoBlocksAsync(html: string): Promise<string[]> {
-  if (!shouldUseWorker()) {
-    return Promise.resolve(splitOnMainThread(html));
+  if (isTestEnvironment()) {
+    return Promise.resolve(splitHtmlIntoBlocksImpl(html));
   }
 
   return new Promise((resolve) => {
-    const id = ++requestId;
-    pendingRequests.set(id, { html, resolve });
-
-    try {
-      getWorker().postMessage({ id, html });
-    } catch {
-      pendingRequests.delete(id);
-      disableWorker();
-      resolve(splitOnMainThread(html));
-    }
+    const taskId = requestIdleTask(() => {
+      pendingIdleTasks.delete(taskId);
+      resolve(splitHtmlIntoBlocksImpl(html));
+    });
+    pendingIdleTasks.add(taskId);
   });
 }
 
-/** テスト用: Worker 利用可否フラグをリセットする */
-export function resetSplitHtmlWorkerStateForTests(): void {
-  workerUsable = true;
-  terminateSplitHtmlWorker();
+/** テスト用: 保留中のアイドルタスクをクリアする */
+export function resetSplitHtmlIdleStateForTests(): void {
+  cancelPendingSplitHtmlTasks();
 }
