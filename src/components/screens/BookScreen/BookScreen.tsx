@@ -56,6 +56,7 @@ export function BookScreen({ identifier }: BookScreenProps) {
         right="2em"
         bottom="5em"
         overflow="hidden"
+        style={{ contain: "layout" }}
       >
         {/* ローディング中またはレイアウト計算中はローディングアイコンを表示 */}
         {!isReady && (
@@ -85,8 +86,9 @@ export function BookScreen({ identifier }: BookScreenProps) {
             h="full"
             style={{
               opacity: isReady ? undefined : 0,
-              transform: `translateX(${currentPage * contentAreaWidth}px)`,
+              transform: `translate3d(${currentPage * contentAreaWidth}px, 0, 0)`,
               transition: isReady ? "transform 0.3s ease" : "none",
+              willChange: isReady ? "transform" : undefined,
             }}
             dangerouslySetInnerHTML={{ __html: htmlContent }}
           />
