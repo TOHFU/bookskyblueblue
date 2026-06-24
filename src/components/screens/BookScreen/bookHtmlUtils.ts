@@ -433,14 +433,14 @@ export function prepareBookDisplay(
   initialPage: number
 ): ChunkMetadata {
   const blocks = splitHtmlIntoBlocks(html);
-  const isEmpty = blocks.length === 0;
+  const isEmpty = blocks.every((block) => !block.trim());
 
   const metadata: ChunkMetadata = {
     totalPages: 1,
     totalPagesKnown: isEmpty,
     totalChunks: 1,
     chunks: [],
-    blocks,
+    blocks: isEmpty ? [] : blocks,
     layoutParams: params,
   };
 
