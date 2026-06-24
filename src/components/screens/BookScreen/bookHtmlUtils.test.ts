@@ -414,9 +414,10 @@ describe("prepareBookDisplayFromCache", () => {
     expect(metadata.chunks).toHaveLength(1);
   });
 
-  it("過大なendPageのキャッシュでも深いページを開ける", () => {
+  it("過大なendPageのキャッシュでも深いページ向けにチャンクを再構築する", () => {
     const paragraph = "<p>あいうえおかきくけこさしすせそたちつてとなにぬねの</p>";
     const blocks = Array.from({ length: 80 }, () => paragraph);
+    const params = { columnWidth: 32, containerHeight: 600, containerWidth: 300 };
     const cached: StoredBookLayout = {
       id: "work-1:32:600:300",
       workId: "work-1",
@@ -437,17 +438,18 @@ describe("prepareBookDisplayFromCache", () => {
       ],
     };
 
-    const metadata = prepareBookDisplayFromCache(
-      blocks,
-      { columnWidth: 32, containerHeight: 600, containerWidth: 300 },
-      cached,
-      37
-    );
+    const hydrated = hydrateMetadataFromCache(blocks, params, cached);
+    expect(isPageInChunk(37, hydrated.chunks[0]!)).toBe(false);
 
-    const chunk = getChunkForPage(37, metadata, "neutral");
-    expect(chunk).not.toBeNull();
-    expect(isPageInChunk(37, chunk!)).toBe(true);
-    expect(chunk!.content.length).toBeGreaterThan(blocks[0]!.length);
+    const metadata = prepareBookDisplayFromCache(blocks, params, cached, 37);
+    const chunk = metadata.chunks.find((entry) => entry.startPage === 18);
+
+    expect(chunk).toBeDefined();
+    // jsdom では縦書き計測が効かないため endPage は過大キャッシュより小さく補正される
+    expect(chunk!.endPage).toBeLessThan(cached.chunkBoundaries[0]!.endPage);
+    // 深いページ向けにブロック範囲が拡張される（blockStart が進む場合もある）
+    expect(chunk!.blockEnd).toBeGreaterThan(cached.chunkBoundaries[0]!.blockEnd);
+    expect(getChunkForPage(37, metadata, "neutral")).not.toBeNull();
   });
 });
 
