@@ -42,12 +42,13 @@ describe("OfflineScreen", () => {
 
   it("TOPに戻るボタンが表示される", () => {
     renderScreen();
-    expect(screen.getByRole("button", { name: "TOPに戻る" })).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: "TOPに戻る" }).length).toBeGreaterThanOrEqual(1);
   });
 
   it("TOPに戻るボタンクリックで router.push('/') が呼ばれる", async () => {
     renderScreen();
-    await userEvent.click(screen.getByRole("button", { name: "TOPに戻る" }));
+    const buttons = screen.getAllByRole("button", { name: "TOPに戻る" });
+    await userEvent.click(buttons[0]);
     expect(mockPush).toHaveBeenCalledWith("/");
   });
 

@@ -1,26 +1,7 @@
 import { workSchema, type Work } from "@/domain/entities/work";
 import type { WorkLibraryRepository } from "@/domain/repositories/workLibraryRepository";
-
-const DB_NAME = "bookskyblueblue";
-const DB_VERSION = 1;
-const STORE_WORKS = "savedWorks";
-
-/** IndexedDBのデータベースを開く */
-function openDatabase(): Promise<IDBDatabase> {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, DB_VERSION);
-
-    request.onupgradeneeded = (event) => {
-      const db = (event.target as IDBOpenDBRequest).result;
-      if (!db.objectStoreNames.contains(STORE_WORKS)) {
-        db.createObjectStore(STORE_WORKS, { keyPath: "id" });
-      }
-    };
-
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-  });
-}
+import { deleteBookLayoutCachesForWork } from "@/data/repositories/bookLayoutCacheRepository";
+import { openDatabase, STORE_WORKS } from "@/data/repositories/indexedDbConnection";
 
 /** 保存済み作品を全件取得 */
 export async function getSavedWorks(): Promise<Work[]> {
@@ -53,6 +34,7 @@ export async function saveWork(work: Work): Promise<void> {
 /** 作品を削除 */
 export async function deleteWork(id: string): Promise<void> {
   const db = await openDatabase();
+  await deleteBookLayoutCachesForWork(id);
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_WORKS, "readwrite");
     const request = tx.objectStore(STORE_WORKS).delete(id);

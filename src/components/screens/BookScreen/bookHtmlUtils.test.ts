@@ -1,6 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { sanitizeHtml, extractMainContent, getChunkForPage } from "./bookHtmlUtils";
+import {
+  sanitizeHtml,
+  extractMainContent,
+  getChunkForPage,
+  createLayoutKey,
+  hashBookContent,
+  hydrateMetadataFromCache,
+  listNominalChunkStartPages,
+  prepareBookDisplayFromCache,
+} from "./bookHtmlUtils";
 import type { ChunkMetadata } from "./bookHtmlUtils";
+import type { StoredBookLayout } from "@/domain/entities/bookLayoutCache";
 
 describe("sanitizeHtml", () => {
   it("scriptタグを除去する", () => {
@@ -149,5 +159,97 @@ describe("getChunkForPage", () => {
 
   it("範囲外のページ番号では最後のチャンクを返す", () => {
     expect(getChunkForPage(999, metadata)?.chunkId).toBe(2);
+  });
+});
+
+describe("createLayoutKey", () => {
+  it("レイアウトパラメータからキャッシュキーを生成する", () => {
+    expect(
+      createLayoutKey({
+        columnWidth: 32.4,
+        containerHeight: 599.8,
+        containerWidth: 300.2,
+      })
+    ).toBe("32:600:300");
+  });
+});
+
+describe("hashBookContent", () => {
+  it("同じHTMLから同じハッシュを返す", () => {
+    const html = "<p>テスト</p>".repeat(100);
+    expect(hashBookContent(html)).toBe(hashBookContent(html));
+  });
+
+  it("異なるHTMLから異なるハッシュを返す", () => {
+    expect(hashBookContent("<p>あ</p>")).not.toBe(hashBookContent("<p>い</p>"));
+  });
+});
+
+describe("listNominalChunkStartPages", () => {
+  it("オーバーラップを考慮した開始ページ一覧を返す", () => {
+    expect(listNominalChunkStartPages(45)).toEqual([0, 18, 38]);
+  });
+});
+
+describe("hydrateMetadataFromCache", () => {
+  const cached: StoredBookLayout = {
+    id: "work-1:32:600:300",
+    workId: "work-1",
+    layoutKey: "32:600:300",
+    contentHash: "100:123",
+    totalPages: 45,
+    totalChunks: 3,
+    updatedAt: 0,
+    isComplete: true,
+    chunkBoundaries: [
+      { chunkId: 0, startPage: 0, endPage: 20, blockStart: 0, blockEnd: 0 },
+      { chunkId: 1, startPage: 18, endPage: 40, blockStart: 1, blockEnd: 1 },
+    ],
+  };
+
+  it("キャッシュからチャンクメタデータを復元する", () => {
+    const blocks = ["<p>chunk0</p>", "<p>chunk1</p>"];
+    const metadata = hydrateMetadataFromCache(
+      blocks,
+      {
+        columnWidth: 32,
+        containerHeight: 600,
+        containerWidth: 300,
+      },
+      cached
+    );
+
+    expect(metadata.totalPages).toBe(45);
+    expect(metadata.chunks).toHaveLength(2);
+    expect(metadata.chunks[0]?.content).toContain("chunk0");
+  });
+});
+
+describe("prepareBookDisplayFromCache", () => {
+  it("初期ページがキャッシュ済みチャンクに含まれる場合は追加構築しない", () => {
+    const cached: StoredBookLayout = {
+      id: "work-1:32:600:300",
+      workId: "work-1",
+      layoutKey: "32:600:300",
+      contentHash: "100:123",
+      totalPages: 45,
+      totalChunks: 3,
+      updatedAt: 0,
+      isComplete: false,
+      chunkBoundaries: [
+        { chunkId: 0, startPage: 0, endPage: 20, blockStart: 0, blockEnd: 0 },
+      ],
+    };
+
+    const blocks = ["<p>chunk0</p>", "<p>chunk1</p>"];
+    const metadata = prepareBookDisplayFromCache(
+      blocks,
+      { columnWidth: 32, containerHeight: 600, containerWidth: 300 },
+      cached,
+      10
+    );
+
+    expect(metadata.totalPages).toBe(45);
+    expect(metadata.chunks).toHaveLength(1);
   });
 });

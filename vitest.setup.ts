@@ -23,6 +23,22 @@ class MockResizeObserver {
 }
 global.ResizeObserver = MockResizeObserver as unknown as typeof ResizeObserver;
 
+const mockCache = {
+  add: vi.fn().mockResolvedValue(undefined),
+  match: vi.fn(),
+  put: vi.fn(),
+  delete: vi.fn(),
+  keys: vi.fn(),
+};
+
+global.caches = {
+  open: vi.fn(async () => mockCache),
+  delete: vi.fn(),
+  has: vi.fn(),
+  keys: vi.fn(),
+  match: vi.fn(),
+} as unknown as CacheStorage;
+
 // MSW server のセットアップ
 beforeAll(() => server.listen({ onUnhandledRequest: "bypass" }));
 afterEach(() => server.resetHandlers());
