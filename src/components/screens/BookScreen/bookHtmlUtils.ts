@@ -94,6 +94,8 @@ export type CalculatedChunk = {
 
 export type ChunkMetadata = {
   totalPages: number;
+  /** false のとき総ページ数は未計測（初回表示を優先） */
+  totalPagesKnown: boolean;
   totalChunks: number;
   chunks: CalculatedChunk[];
   blocks: string[];
@@ -221,17 +223,18 @@ function resolveChunkStartPage(globalPage: number): number {
 }
 
 function buildChunkAtStartPage(
-  blocks: string[],
-  totalPages: number,
-  params: LayoutParams,
+  metadata: ChunkMetadata,
   startPage: number,
   chunkId: number
 ): CalculatedChunk {
+  const { blocks, layoutParams: params, totalPages, totalPagesKnown } = metadata;
   const measurer = new BlockMeasurer(params);
 
   try {
     const blockStart = findBlockForPageStart(blocks, startPage, measurer);
-    const lastPageInChunk = Math.min(startPage + CHUNK_SIZE, totalPages) - 1;
+    const lastPageInChunk = totalPagesKnown
+      ? Math.min(startPage + CHUNK_SIZE, totalPages) - 1
+      : startPage + CHUNK_SIZE - 1;
     const blockEnd = findBlockForPageStart(blocks, lastPageInChunk, measurer);
     const pagesBeforeStart = blockStart > 0 ? measurer.measurePrefix(blocks, blockStart - 1) : 0;
     const pagesThroughEnd = measurer.measurePrefix(blocks, blockEnd);
@@ -259,6 +262,10 @@ function findMatchingChunks(
   );
 }
 
+export function isPageInChunk(globalPage: number, chunk: CalculatedChunk): boolean {
+  return globalPage >= chunk.startPage && globalPage < chunk.endPage;
+}
+
 function ensureChunkAtStartPage(
   metadata: ChunkMetadata,
   startPage: number
@@ -268,13 +275,7 @@ function ensureChunkAtStartPage(
     return existing;
   }
 
-  const chunk = buildChunkAtStartPage(
-    metadata.blocks,
-    metadata.totalPages,
-    metadata.layoutParams,
-    startPage,
-    metadata.chunks.length
-  );
+  const chunk = buildChunkAtStartPage(metadata, startPage, metadata.chunks.length);
   metadata.chunks.push(chunk);
   metadata.chunks.sort((left, right) => left.startPage - right.startPage);
   return chunk;
@@ -339,6 +340,10 @@ export function listNominalChunkStartPages(totalPages: number): number[] {
 }
 
 export function findNextMissingChunkStartPage(metadata: ChunkMetadata): number | null {
+  if (!metadata.totalPagesKnown) {
+    return null;
+  }
+
   const existing = new Set(metadata.chunks.map((chunk) => chunk.startPage));
 
   for (const startPage of listNominalChunkStartPages(metadata.totalPages)) {
@@ -379,11 +384,18 @@ export function hydrateMetadataFromCache(
 
   return {
     totalPages: cached.totalPages,
+    totalPagesKnown: true,
     totalChunks: cached.totalChunks,
     chunks,
     blocks,
     layoutParams: params,
   };
+}
+
+export function applyTotalPagesToMetadata(metadata: ChunkMetadata, totalPages: number): void {
+  metadata.totalPages = totalPages;
+  metadata.totalPagesKnown = true;
+  metadata.totalChunks = Math.max(1, Math.ceil(totalPages / CHUNK_SIZE));
 }
 
 export function prepareBookDisplayFromCache(
@@ -414,25 +426,25 @@ export function prepareBookDisplayFromCache(
   return metadata;
 }
 
-/** 初回表示用: 総ページ数の計測と、開くページのチャンクだけを構築する */
+/** 初回表示用: 開くページのチャンクだけ先に構築する（総ページ数は後で計測） */
 export function prepareBookDisplay(
   html: string,
   params: LayoutParams,
   initialPage: number
 ): ChunkMetadata {
   const blocks = splitHtmlIntoBlocks(html);
-  const totalPages =
-    blocks.length === 0 ? 1 : estimatePageCountFromHtml(html, params);
+  const isEmpty = blocks.length === 0;
 
   const metadata: ChunkMetadata = {
-    totalPages,
-    totalChunks: Math.max(1, Math.ceil(totalPages / CHUNK_SIZE)),
+    totalPages: 1,
+    totalPagesKnown: isEmpty,
+    totalChunks: 1,
     chunks: [],
     blocks,
     layoutParams: params,
   };
 
-  if (blocks.length === 0) {
+  if (isEmpty) {
     return metadata;
   }
 

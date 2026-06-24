@@ -3,11 +3,15 @@ import {
   sanitizeHtml,
   extractMainContent,
   getChunkForPage,
+  isPageInChunk,
   createLayoutKey,
   hashBookContent,
   hydrateMetadataFromCache,
   listNominalChunkStartPages,
   prepareBookDisplayFromCache,
+  prepareBookDisplay,
+  applyTotalPagesToMetadata,
+  findNextMissingChunkStartPage,
 } from "./bookHtmlUtils";
 import type { ChunkMetadata } from "./bookHtmlUtils";
 import type { StoredBookLayout } from "@/domain/entities/bookLayoutCache";
@@ -109,6 +113,7 @@ describe("extractMainContent", () => {
 describe("getChunkForPage", () => {
   const metadata: ChunkMetadata = {
     totalPages: 45,
+    totalPagesKnown: true,
     totalChunks: 3,
     blocks: [],
     layoutParams: {
@@ -159,6 +164,25 @@ describe("getChunkForPage", () => {
 
   it("範囲外のページ番号では最後のチャンクを返す", () => {
     expect(getChunkForPage(999, metadata)?.chunkId).toBe(2);
+  });
+});
+
+describe("isPageInChunk", () => {
+  const chunk = {
+    chunkId: 1,
+    startPage: 18,
+    endPage: 40,
+    blockStart: 1,
+    blockEnd: 1,
+    content: "<p>chunk1</p>",
+  };
+
+  it("チャンク範囲内のページを判定する", () => {
+    expect(isPageInChunk(18, chunk)).toBe(true);
+    expect(isPageInChunk(19, chunk)).toBe(true);
+    expect(isPageInChunk(39, chunk)).toBe(true);
+    expect(isPageInChunk(17, chunk)).toBe(false);
+    expect(isPageInChunk(40, chunk)).toBe(false);
   });
 });
 
@@ -251,5 +275,71 @@ describe("prepareBookDisplayFromCache", () => {
 
     expect(metadata.totalPages).toBe(45);
     expect(metadata.chunks).toHaveLength(1);
+  });
+});
+
+describe("applyTotalPagesToMetadata", () => {
+  it("総ページ数と既知フラグを更新する", () => {
+    const metadata: ChunkMetadata = {
+      totalPages: 1,
+      totalPagesKnown: false,
+      totalChunks: 1,
+      chunks: [],
+      blocks: ["<p>a</p>"],
+      layoutParams: {
+        columnWidth: 32,
+        containerHeight: 600,
+        containerWidth: 300,
+      },
+    };
+
+    applyTotalPagesToMetadata(metadata, 45);
+
+    expect(metadata.totalPages).toBe(45);
+    expect(metadata.totalPagesKnown).toBe(true);
+    expect(metadata.totalChunks).toBe(3);
+  });
+});
+
+describe("findNextMissingChunkStartPage", () => {
+  it("総ページ数未計測のときはnullを返す", () => {
+    const metadata: ChunkMetadata = {
+      totalPages: 1,
+      totalPagesKnown: false,
+      totalChunks: 1,
+      chunks: [],
+      blocks: ["<p>a</p>"],
+      layoutParams: {
+        columnWidth: 32,
+        containerHeight: 600,
+        containerWidth: 300,
+      },
+    };
+
+    expect(findNextMissingChunkStartPage(metadata)).toBeNull();
+  });
+});
+
+describe("prepareBookDisplay", () => {
+  const params = {
+    columnWidth: 32,
+    containerHeight: 600,
+    containerWidth: 300,
+  };
+
+  it("初回は総ページ数未計測で初期チャンクだけ構築する", () => {
+    const html = "<p>あ</p>".repeat(10);
+    const metadata = prepareBookDisplay(html, params, 0);
+
+    expect(metadata.totalPagesKnown).toBe(false);
+    expect(metadata.chunks).toHaveLength(1);
+    expect(metadata.chunks[0]?.startPage).toBe(0);
+  });
+
+  it("空本文のときは総ページ数を既知として扱う", () => {
+    const metadata = prepareBookDisplay("", params, 0);
+
+    expect(metadata.totalPagesKnown).toBe(true);
+    expect(metadata.chunks).toHaveLength(0);
   });
 });
