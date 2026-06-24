@@ -12,6 +12,15 @@ type WorkerResponse =
 self.onmessage = (event: MessageEvent<WorkerRequest>) => {
   const { id, html } = event.data;
 
+  if (typeof DOMParser === "undefined") {
+    const response: WorkerResponse = {
+      id,
+      error: "DOMParser is not available in Worker",
+    };
+    self.postMessage(response);
+    return;
+  }
+
   try {
     const blocks = splitHtmlIntoBlocksImpl(html);
     const response: WorkerResponse = { id, blocks };
