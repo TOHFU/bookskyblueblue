@@ -9,7 +9,6 @@ import { updateReadingPositionUseCase } from "@/application/usecases/updateReadi
 import {
   extractMainContent,
   extractPageExcerpt,
-  estimatePageCountFromHtml,
   prepareBookDisplay,
   prepareBookDisplayFromCache,
   getChunkForPage,
@@ -18,16 +17,19 @@ import {
   createLayoutKey,
   hashBookContent,
 } from "@/components/screens/BookScreen/bookHtmlUtils";
+import type { LayoutParams } from "@/components/screens/BookScreen/bookHtmlUtils";
 import {
   flushLayoutCache,
   scheduleDeferredCacheBuild,
   scheduleTotalPagesMeasurement,
 } from "@/components/screens/BookScreen/bookLayoutCacheScheduler";
 import { getBookLayoutCache } from "@/data/repositories/bookLayoutCacheRepository";
+import type { StoredBookLayout } from "@/domain/entities/bookLayoutCache";
 import type { Bookmark } from "@/domain/entities/work";
 import type { ChunkMetadata, CalculatedChunk } from "@/components/screens/BookScreen/bookHtmlUtils";
 
 const FADE_TIMEOUT_MS = 3000;
+const RESIZE_REBUILD_DEBOUNCE_MS = 200;
 
 function measureColumnWidth(): number {
   const probe = document.createElement("div");
@@ -70,8 +72,11 @@ export function useBookScreen(identifier: string) {
   const contentHashRef = useRef("");
   const cancelDeferredCacheBuildRef = useRef<(() => void) | null>(null);
   const cancelTotalPagesMeasurementRef = useRef<(() => void) | null>(null);
+  const resizeRebuildTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const rebuildGenerationRef = useRef(0);
 
   const pageCountRef = useRef(1);
+  const currentPageRef = useRef(0);
   const layoutParamsRef = useRef<{
     columnWidth: number;
     containerHeight: number;
@@ -79,6 +84,10 @@ export function useBookScreen(identifier: string) {
   } | null>(null);
 
   const localPage = currentPage - chunkStartPage;
+
+  useEffect(() => {
+    currentPageRef.current = currentPage;
+  }, [currentPage]);
 
   const cancelDeferredCacheBuild = useCallback(() => {
     cancelDeferredCacheBuildRef.current?.();
@@ -121,6 +130,120 @@ export function useBookScreen(identifier: string) {
     [identifier]
   );
 
+  const applyMetadataToDisplay = useCallback((metadata: ChunkMetadata, page: number) => {
+    const clampedPage = metadata.totalPagesKnown
+      ? Math.min(page, Math.max(0, metadata.totalPages - 1))
+      : page;
+
+    const chunk = getChunkForPage(clampedPage, metadata, "neutral");
+    if (!chunk) {
+      setHtmlContent("");
+      return clampedPage;
+    }
+
+    pageCountRef.current = metadata.totalPagesKnown
+      ? metadata.totalPages
+      : Math.max(metadata.totalPages, chunk.endPage);
+    setPageCount(pageCountRef.current);
+
+    chunkMetadataRef.current = metadata;
+    setTotalPagesKnown(metadata.totalPagesKnown);
+    currentChunkRef.current = chunk;
+    setChunkStartPage(chunk.startPage);
+    setHtmlContent(chunk.content);
+    setCurrentPage(clampedPage);
+
+    return clampedPage;
+  }, []);
+
+  const scheduleLayoutBackgroundWork = useCallback(
+    (html: string, params: LayoutParams, cached: StoredBookLayout | null) => {
+      if (cached?.isComplete) {
+        return;
+      }
+
+      if (!cached) {
+        flushCurrentLayoutCache(false);
+        cancelTotalPagesMeasurement();
+        cancelTotalPagesMeasurementRef.current = scheduleTotalPagesMeasurement({
+          html,
+          params,
+          getMetadata: () => chunkMetadataRef.current,
+          onMeasured: (totalPages) => {
+            pageCountRef.current = totalPages;
+            setPageCount(totalPages);
+            setTotalPagesKnown(true);
+            setCurrentPage((prev) => Math.min(prev, totalPages - 1));
+            flushCurrentLayoutCache(false);
+            startDeferredCacheBuild();
+          },
+        });
+        return;
+      }
+
+      startDeferredCacheBuild();
+    },
+    [
+      cancelTotalPagesMeasurement,
+      flushCurrentLayoutCache,
+      startDeferredCacheBuild,
+    ]
+  );
+
+  const rebuildBookDisplay = useCallback(
+    async (params: LayoutParams, page: number) => {
+      const html = fullHtmlContentRef.current;
+      if (!html) {
+        return;
+      }
+
+      const generation = ++rebuildGenerationRef.current;
+      const contentHash = contentHashRef.current || hashBookContent(html);
+      contentHashRef.current = contentHash;
+
+      const layoutKey = createLayoutKey(params);
+      layoutKeyRef.current = layoutKey;
+      layoutParamsRef.current = params;
+
+      const blocks = splitHtmlIntoBlocks(html);
+      const cached = await getBookLayoutCache(identifier, layoutKey, contentHash);
+
+      if (generation !== rebuildGenerationRef.current) {
+        return;
+      }
+
+      const metadata = cached
+        ? prepareBookDisplayFromCache(blocks, params, cached, page)
+        : prepareBookDisplay(html, params, page);
+
+      applyMetadataToDisplay(metadata, page);
+      scheduleLayoutBackgroundWork(html, params, cached);
+    },
+    [applyMetadataToDisplay, identifier, scheduleLayoutBackgroundWork]
+  );
+
+  const reinitializeOnLayoutChange = useCallback(() => {
+    const params = layoutParamsRef.current;
+    if (!params || !chunksInitializedRef.current) {
+      return;
+    }
+
+    const newLayoutKey = createLayoutKey(params);
+    if (newLayoutKey === layoutKeyRef.current) {
+      return;
+    }
+
+    flushCurrentLayoutCache(false);
+    cancelDeferredCacheBuild();
+    cancelTotalPagesMeasurement();
+    void rebuildBookDisplay(params, currentPageRef.current);
+  }, [
+    cancelDeferredCacheBuild,
+    cancelTotalPagesMeasurement,
+    flushCurrentLayoutCache,
+    rebuildBookDisplay,
+  ]);
+
   const showControls = useCallback(() => {
     setControlsVisible(true);
 
@@ -154,6 +277,9 @@ export function useBookScreen(identifier: string) {
     return () => {
       cancelDeferredCacheBuild();
       cancelTotalPagesMeasurement();
+      if (resizeRebuildTimerRef.current) {
+        clearTimeout(resizeRebuildTimerRef.current);
+      }
     };
   }, [cancelDeferredCacheBuild, cancelTotalPagesMeasurement]);
 
@@ -280,67 +406,16 @@ export function useBookScreen(identifier: string) {
 
     const initializeDisplay = async () => {
       const html = fullHtmlContentRef.current;
-      const contentHash = hashBookContent(html);
-      const layoutKey = createLayoutKey(params);
-      layoutKeyRef.current = layoutKey;
-      contentHashRef.current = contentHash;
+      contentHashRef.current = hashBookContent(html);
 
-      const blocks = splitHtmlIntoBlocks(html);
-      const cached = await getBookLayoutCache(identifier, layoutKey, contentHash);
+      await rebuildBookDisplay(params, initialPageRef.current);
 
       if (cancelled) {
         return;
       }
 
-      const metadata = cached
-        ? prepareBookDisplayFromCache(blocks, params, cached, initialPageRef.current)
-        : prepareBookDisplay(html, params, initialPageRef.current);
-
-      chunkMetadataRef.current = metadata;
-      setTotalPagesKnown(metadata.totalPagesKnown);
-
-      const initialChunk = getChunkForPage(initialPageRef.current, metadata, "neutral");
-      if (!initialChunk) {
-        setHtmlContent("");
-        chunksInitializedRef.current = true;
-        setIsReady(true);
-        return;
-      }
-
-      pageCountRef.current = metadata.totalPagesKnown
-        ? metadata.totalPages
-        : Math.max(metadata.totalPages, initialChunk.endPage);
-      setPageCount(pageCountRef.current);
-
-      currentChunkRef.current = initialChunk;
-      setChunkStartPage(initialChunk.startPage);
-      setHtmlContent(initialChunk.content);
       chunksInitializedRef.current = true;
       setIsReady(true);
-
-      if (cached?.isComplete) {
-        return;
-      }
-
-      if (!cached) {
-        flushCurrentLayoutCache(false);
-        cancelTotalPagesMeasurement();
-        cancelTotalPagesMeasurementRef.current = scheduleTotalPagesMeasurement({
-          html,
-          params,
-          getMetadata: () => chunkMetadataRef.current,
-          onMeasured: (totalPages) => {
-            pageCountRef.current = totalPages;
-            setPageCount(totalPages);
-            setTotalPagesKnown(true);
-            flushCurrentLayoutCache(false);
-            startDeferredCacheBuild();
-          },
-        });
-        return;
-      }
-
-      startDeferredCacheBuild();
     };
 
     void initializeDisplay();
@@ -348,14 +423,7 @@ export function useBookScreen(identifier: string) {
     return () => {
       cancelled = true;
     };
-  }, [
-    contentLoaded,
-    flushCurrentLayoutCache,
-    identifier,
-    layoutContainerReady,
-    cancelTotalPagesMeasurement,
-    startDeferredCacheBuild,
-  ]);
+  }, [contentLoaded, identifier, layoutContainerReady, rebuildBookDisplay]);
 
   useEffect(() => {
     if (!htmlContent) {
@@ -445,20 +513,33 @@ export function useBookScreen(identifier: string) {
 
     const observer = new ResizeObserver(() => {
       calcLayout();
-      if (fullHtmlContentRef.current && layoutParamsRef.current) {
-        const recalculatedPageCount = estimatePageCountFromHtml(
-          fullHtmlContentRef.current,
-          layoutParamsRef.current
-        );
-        setPageCount(recalculatedPageCount);
-        pageCountRef.current = recalculatedPageCount;
-        setCurrentPage((prev) => Math.min(prev, recalculatedPageCount - 1));
+
+      if (!chunksInitializedRef.current || !layoutParamsRef.current) {
+        return;
       }
+
+      const newLayoutKey = createLayoutKey(layoutParamsRef.current);
+      if (newLayoutKey === layoutKeyRef.current) {
+        return;
+      }
+
+      if (resizeRebuildTimerRef.current) {
+        clearTimeout(resizeRebuildTimerRef.current);
+      }
+
+      resizeRebuildTimerRef.current = setTimeout(() => {
+        reinitializeOnLayoutChange();
+      }, RESIZE_REBUILD_DEBOUNCE_MS);
     });
 
     observer.observe(container);
-    return () => observer.disconnect();
-  }, [calcLayout]);
+    return () => {
+      observer.disconnect();
+      if (resizeRebuildTimerRef.current) {
+        clearTimeout(resizeRebuildTimerRef.current);
+      }
+    };
+  }, [calcLayout, reinitializeOnLayoutChange]);
 
   const handlePrevPage = useCallback(() => {
     showControls();
