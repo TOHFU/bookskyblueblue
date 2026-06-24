@@ -5,9 +5,12 @@ import {
 } from "@/data/repositories/bookLayoutCacheRepository";
 import {
   addChunkAtStartPage,
+  applyTotalPagesToMetadata,
   chunkToStoredBoundary,
+  estimatePageCountFromHtml,
   findNextMissingChunkStartPage,
   type ChunkMetadata,
+  type LayoutParams,
 } from "@/components/screens/BookScreen/bookHtmlUtils";
 
 type IdleRequestCallback = (deadline: IdleDeadline) => void;
@@ -128,6 +131,51 @@ export function scheduleDeferredCacheBuild(options: DeferredCacheBuildOptions): 
   };
 
   idleTaskId = requestIdleTask(run);
+
+  return () => {
+    cancelled = true;
+    if (idleTaskId !== null) {
+      cancelIdleTask(idleTaskId);
+    }
+  };
+}
+
+type TotalPagesMeasurementOptions = {
+  html: string;
+  params: LayoutParams;
+  getMetadata: () => ChunkMetadata | null;
+  onMeasured: (totalPages: number) => void;
+};
+
+/** 初回オープン時に総ページ数計測をアイドル後へ遅延する */
+export function scheduleTotalPagesMeasurement(
+  options: TotalPagesMeasurementOptions
+): () => void {
+  let cancelled = false;
+  let idleTaskId: number | null = null;
+
+  const run = () => {
+    if (cancelled) {
+      return;
+    }
+
+    const metadata = options.getMetadata();
+    if (!metadata || metadata.totalPagesKnown) {
+      return;
+    }
+
+    const totalPages = estimatePageCountFromHtml(options.html, options.params);
+    if (cancelled) {
+      return;
+    }
+
+    applyTotalPagesToMetadata(metadata, totalPages);
+    options.onMeasured(totalPages);
+  };
+
+  idleTaskId = requestIdleTask(() => {
+    run();
+  });
 
   return () => {
     cancelled = true;

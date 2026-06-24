@@ -5,6 +5,37 @@ import {
   STORE_BOOK_LAYOUT,
 } from "@/data/repositories/indexedDbConnection";
 
+const MEMORY_CACHE_LIMIT = 8;
+const memoryCache = new Map<string, StoredBookLayout>();
+
+function rememberInMemoryCache(entry: StoredBookLayout): void {
+  if (memoryCache.has(entry.id)) {
+    memoryCache.delete(entry.id);
+  }
+  memoryCache.set(entry.id, entry);
+
+  while (memoryCache.size > MEMORY_CACHE_LIMIT) {
+    const oldestKey = memoryCache.keys().next().value;
+    if (!oldestKey) {
+      break;
+    }
+    memoryCache.delete(oldestKey);
+  }
+}
+
+function readFromMemoryCache(
+  workId: string,
+  layoutKey: string,
+  contentHash: string
+): StoredBookLayout | null {
+  const entry = memoryCache.get(createBookLayoutCacheId(workId, layoutKey));
+  if (!entry || entry.contentHash !== contentHash) {
+    return null;
+  }
+
+  return entry;
+}
+
 export function createBookLayoutCacheId(workId: string, layoutKey: string): string {
   return `${workId}:${layoutKey}`;
 }
@@ -14,6 +45,11 @@ export async function getBookLayoutCache(
   layoutKey: string,
   contentHash: string
 ): Promise<StoredBookLayout | null> {
+  const cached = readFromMemoryCache(workId, layoutKey, contentHash);
+  if (cached) {
+    return cached;
+  }
+
   const db = await openDatabase();
 
   return new Promise((resolve, reject) => {
@@ -28,6 +64,7 @@ export async function getBookLayoutCache(
         resolve(null);
         return;
       }
+      rememberInMemoryCache(entry);
       resolve(entry);
     };
     request.onerror = () => reject(request.error);
@@ -35,6 +72,8 @@ export async function getBookLayoutCache(
 }
 
 export async function saveBookLayoutCache(entry: StoredBookLayout): Promise<void> {
+  rememberInMemoryCache(entry);
+
   const db = await openDatabase();
 
   return new Promise((resolve, reject) => {
@@ -46,6 +85,12 @@ export async function saveBookLayoutCache(entry: StoredBookLayout): Promise<void
 }
 
 export async function deleteBookLayoutCachesForWork(workId: string): Promise<void> {
+  for (const [key, entry] of memoryCache) {
+    if (entry.workId === workId) {
+      memoryCache.delete(key);
+    }
+  }
+
   const db = await openDatabase();
 
   return new Promise((resolve, reject) => {
@@ -64,4 +109,9 @@ export async function deleteBookLayoutCachesForWork(workId: string): Promise<voi
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error);
   });
+}
+
+/** テスト用: メモリキャッシュをクリアする */
+export function clearBookLayoutMemoryCacheForTests(): void {
+  memoryCache.clear();
 }

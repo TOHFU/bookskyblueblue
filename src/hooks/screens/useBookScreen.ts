@@ -20,6 +20,7 @@ import {
 import {
   flushLayoutCache,
   scheduleDeferredCacheBuild,
+  scheduleTotalPagesMeasurement,
 } from "@/components/screens/BookScreen/bookLayoutCacheScheduler";
 import { getBookLayoutCache } from "@/data/repositories/bookLayoutCacheRepository";
 import type { Bookmark } from "@/domain/entities/work";
@@ -52,6 +53,7 @@ export function useBookScreen(identifier: string) {
   const [contentLoaded, setContentLoaded] = useState(false);
   const [layoutContainerReady, setLayoutContainerReady] = useState(false);
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
+  const [totalPagesKnown, setTotalPagesKnown] = useState(true);
 
   const fadeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -66,6 +68,7 @@ export function useBookScreen(identifier: string) {
   const layoutKeyRef = useRef("");
   const contentHashRef = useRef("");
   const cancelDeferredCacheBuildRef = useRef<(() => void) | null>(null);
+  const cancelTotalPagesMeasurementRef = useRef<(() => void) | null>(null);
 
   const pageCountRef = useRef(1);
   const layoutParamsRef = useRef<{
@@ -79,6 +82,11 @@ export function useBookScreen(identifier: string) {
   const cancelDeferredCacheBuild = useCallback(() => {
     cancelDeferredCacheBuildRef.current?.();
     cancelDeferredCacheBuildRef.current = null;
+  }, []);
+
+  const cancelTotalPagesMeasurement = useCallback(() => {
+    cancelTotalPagesMeasurementRef.current?.();
+    cancelTotalPagesMeasurementRef.current = null;
   }, []);
 
   const startDeferredCacheBuild = useCallback(() => {
@@ -126,6 +134,7 @@ export function useBookScreen(identifier: string) {
 
   useEffect(() => {
     cancelDeferredCacheBuild();
+    cancelTotalPagesMeasurement();
     chunksInitializedRef.current = false;
     chunkMetadataRef.current = null;
     currentChunkRef.current = null;
@@ -137,13 +146,15 @@ export function useBookScreen(identifier: string) {
     setContentLoaded(false);
     setLayoutContainerReady(false);
     setHtmlContent(null);
-  }, [cancelDeferredCacheBuild, identifier]);
+    setTotalPagesKnown(true);
+  }, [cancelDeferredCacheBuild, cancelTotalPagesMeasurement, identifier]);
 
   useEffect(() => {
     return () => {
       cancelDeferredCacheBuild();
+      cancelTotalPagesMeasurement();
     };
-  }, [cancelDeferredCacheBuild]);
+  }, [cancelDeferredCacheBuild, cancelTotalPagesMeasurement]);
 
   useEffect(() => {
     const loadWork = async () => {
@@ -285,8 +296,7 @@ export function useBookScreen(identifier: string) {
         : prepareBookDisplay(html, params, initialPageRef.current);
 
       chunkMetadataRef.current = metadata;
-      pageCountRef.current = metadata.totalPages;
-      setPageCount(metadata.totalPages);
+      setTotalPagesKnown(metadata.totalPagesKnown);
 
       const initialChunk = getChunkForPage(initialPageRef.current, metadata, "neutral");
       if (!initialChunk) {
@@ -295,6 +305,11 @@ export function useBookScreen(identifier: string) {
         setIsReady(true);
         return;
       }
+
+      pageCountRef.current = metadata.totalPagesKnown
+        ? metadata.totalPages
+        : Math.max(metadata.totalPages, initialChunk.endPage);
+      setPageCount(pageCountRef.current);
 
       currentChunkRef.current = initialChunk;
       setChunkStartPage(initialChunk.startPage);
@@ -308,6 +323,20 @@ export function useBookScreen(identifier: string) {
 
       if (!cached) {
         flushCurrentLayoutCache(false);
+        cancelTotalPagesMeasurement();
+        cancelTotalPagesMeasurementRef.current = scheduleTotalPagesMeasurement({
+          html,
+          params,
+          getMetadata: () => chunkMetadataRef.current,
+          onMeasured: (totalPages) => {
+            pageCountRef.current = totalPages;
+            setPageCount(totalPages);
+            setTotalPagesKnown(true);
+            flushCurrentLayoutCache(false);
+            startDeferredCacheBuild();
+          },
+        });
+        return;
       }
 
       startDeferredCacheBuild();
@@ -323,6 +352,7 @@ export function useBookScreen(identifier: string) {
     flushCurrentLayoutCache,
     identifier,
     layoutContainerReady,
+    cancelTotalPagesMeasurement,
     startDeferredCacheBuild,
   ]);
 
@@ -409,7 +439,8 @@ export function useBookScreen(identifier: string) {
 
   const handleNextPage = useCallback(() => {
     showControls();
-    if (currentPage >= pageCountRef.current - 1) {
+    const metadata = chunkMetadataRef.current;
+    if (metadata?.totalPagesKnown && currentPage >= pageCountRef.current - 1) {
       return;
     }
 
@@ -418,9 +449,10 @@ export function useBookScreen(identifier: string) {
 
   const handleClose = useCallback(() => {
     cancelDeferredCacheBuild();
+    cancelTotalPagesMeasurement();
     flushCurrentLayoutCache(false);
     router.push("/");
-  }, [cancelDeferredCacheBuild, flushCurrentLayoutCache, router]);
+  }, [cancelDeferredCacheBuild, cancelTotalPagesMeasurement, flushCurrentLayoutCache, router]);
 
   const handleToggleBookmark = useCallback(async () => {
     if (!innerRef.current || !contentAreaRef.current) {
@@ -452,6 +484,7 @@ export function useBookScreen(identifier: string) {
     controlsVisible,
     isReady,
     bookmarks,
+    totalPagesKnown,
     isCurrentPageBookmarked: bookmarks.some((bookmark) => bookmark.page === currentPage),
     isOddPageNumber: (currentPage + 1) % 2 !== 0,
     containerRef,
