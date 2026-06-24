@@ -9,14 +9,17 @@ import { updateReadingPositionUseCase } from "@/application/usecases/updateReadi
 import {
   extractMainContent,
   extractPageExcerpt,
-  prepareBookDisplay,
+  prepareBookDisplayFromBlocks,
   prepareBookDisplayFromCache,
   getChunkForPage,
   isPageInChunk,
-  splitHtmlIntoBlocks,
   createLayoutKey,
   hashBookContent,
 } from "@/components/screens/BookScreen/bookHtmlUtils";
+import {
+  splitHtmlIntoBlocksAsync,
+  terminateSplitHtmlWorker,
+} from "@/components/screens/BookScreen/splitHtmlIntoBlocksAsync";
 import type { LayoutParams } from "@/components/screens/BookScreen/bookHtmlUtils";
 import {
   flushLayoutCache,
@@ -205,7 +208,7 @@ export function useBookScreen(identifier: string) {
       layoutKeyRef.current = layoutKey;
       layoutParamsRef.current = params;
 
-      const blocks = splitHtmlIntoBlocks(html);
+      const blocks = await splitHtmlIntoBlocksAsync(html);
       const cached = await getBookLayoutCache(identifier, layoutKey, contentHash);
 
       if (generation !== rebuildGenerationRef.current) {
@@ -214,7 +217,7 @@ export function useBookScreen(identifier: string) {
 
       const metadata = cached
         ? prepareBookDisplayFromCache(blocks, params, cached, page)
-        : prepareBookDisplay(html, params, page);
+        : prepareBookDisplayFromBlocks(blocks, params, page);
 
       applyMetadataToDisplay(metadata, page);
       scheduleLayoutBackgroundWork(html, params, cached);
@@ -277,6 +280,7 @@ export function useBookScreen(identifier: string) {
     return () => {
       cancelDeferredCacheBuild();
       cancelTotalPagesMeasurement();
+      terminateSplitHtmlWorker();
       if (resizeRebuildTimerRef.current) {
         clearTimeout(resizeRebuildTimerRef.current);
       }
