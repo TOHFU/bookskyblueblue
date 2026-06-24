@@ -3,6 +3,7 @@ import {
   sanitizeHtml,
   extractMainContent,
   getChunkForPage,
+  isPageInChunk,
   createLayoutKey,
   hashBookContent,
   hydrateMetadataFromCache,
@@ -163,6 +164,25 @@ describe("getChunkForPage", () => {
 
   it("範囲外のページ番号では最後のチャンクを返す", () => {
     expect(getChunkForPage(999, metadata)?.chunkId).toBe(2);
+  });
+});
+
+describe("isPageInChunk", () => {
+  const chunk = {
+    chunkId: 1,
+    startPage: 18,
+    endPage: 40,
+    blockStart: 1,
+    blockEnd: 1,
+    content: "<p>chunk1</p>",
+  };
+
+  it("チャンク範囲内のページを判定する", () => {
+    expect(isPageInChunk(18, chunk)).toBe(true);
+    expect(isPageInChunk(19, chunk)).toBe(true);
+    expect(isPageInChunk(39, chunk)).toBe(true);
+    expect(isPageInChunk(17, chunk)).toBe(false);
+    expect(isPageInChunk(40, chunk)).toBe(false);
   });
 });
 

@@ -262,6 +262,10 @@ function findMatchingChunks(
   );
 }
 
+export function isPageInChunk(globalPage: number, chunk: CalculatedChunk): boolean {
+  return globalPage >= chunk.startPage && globalPage < chunk.endPage;
+}
+
 function ensureChunkAtStartPage(
   metadata: ChunkMetadata,
   startPage: number

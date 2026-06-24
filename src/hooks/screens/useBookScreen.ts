@@ -13,6 +13,7 @@ import {
   prepareBookDisplay,
   prepareBookDisplayFromCache,
   getChunkForPage,
+  isPageInChunk,
   splitHtmlIntoBlocks,
   createLayoutKey,
   hashBookContent,
@@ -373,22 +374,53 @@ export function useBookScreen(identifier: string) {
   const changePage = useCallback(
     (nextPage: number, direction: "forward" | "backward") => {
       const metadata = chunkMetadataRef.current;
+      const activeChunk = currentChunkRef.current;
+
+      if (activeChunk && isPageInChunk(nextPage, activeChunk)) {
+        setCurrentPage(nextPage);
+        void updateReadingPositionUseCase(
+          clientWorkLibraryRepository,
+          identifier,
+          nextPage,
+          pageCountRef.current
+        );
+        return;
+      }
+
       if (metadata) {
         const nextChunk = getChunkForPage(nextPage, metadata, direction);
-        if (nextChunk && nextChunk.chunkId !== currentChunkRef.current?.chunkId) {
+        if (nextChunk && nextChunk.chunkId !== activeChunk?.chunkId) {
+          const canForwardPreSwitch =
+            direction === "forward" && isPageInChunk(currentPage, nextChunk);
+
           setIsChunkTransitioning(true);
           applyChunk(nextChunk);
+
+          if (canForwardPreSwitch) {
+            requestAnimationFrame(() => {
+              setIsChunkTransitioning(false);
+              requestAnimationFrame(() => {
+                setCurrentPage(nextPage);
+                void updateReadingPositionUseCase(
+                  clientWorkLibraryRepository,
+                  identifier,
+                  nextPage,
+                  pageCountRef.current
+                );
+              });
+            });
+            return;
+          }
+
+          setCurrentPage(nextPage);
+          void updateReadingPositionUseCase(
+            clientWorkLibraryRepository,
+            identifier,
+            nextPage,
+            pageCountRef.current
+          );
           requestAnimationFrame(() => {
             setIsChunkTransitioning(false);
-            requestAnimationFrame(() => {
-              setCurrentPage(nextPage);
-              void updateReadingPositionUseCase(
-                clientWorkLibraryRepository,
-                identifier,
-                nextPage,
-                pageCountRef.current
-              );
-            });
           });
           return;
         }
@@ -402,7 +434,7 @@ export function useBookScreen(identifier: string) {
         pageCountRef.current
       );
     },
-    [applyChunk, identifier]
+    [applyChunk, currentPage, identifier]
   );
 
   useEffect(() => {
