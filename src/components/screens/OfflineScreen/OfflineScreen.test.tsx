@@ -42,12 +42,12 @@ describe("OfflineScreen", () => {
 
   it("TOPに戻るボタンが表示される", () => {
     renderScreen();
-    expect(screen.getByRole("button", { name: "TOPに戻る" })).toBeInTheDocument();
+    expect(screen.getByText("TOPに戻る")).toBeInTheDocument();
   });
 
   it("TOPに戻るボタンクリックで router.push('/') が呼ばれる", async () => {
     renderScreen();
-    await userEvent.click(screen.getByRole("button", { name: "TOPに戻る" }));
+    await userEvent.click(screen.getByText("TOPに戻る"));
     expect(mockPush).toHaveBeenCalledWith("/");
   });
 

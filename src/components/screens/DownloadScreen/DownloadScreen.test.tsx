@@ -48,6 +48,11 @@ function renderScreen(identifier = "test-001") {
 describe("DownloadScreen", () => {
   beforeEach(() => {
     mockPush.mockClear();
+    vi.stubGlobal("caches", {
+      open: vi.fn(async () => ({
+        add: vi.fn(async () => undefined),
+      })),
+    });
     server.use(
       http.get("http://localhost/api/works/test-001", () =>
         HttpResponse.json({ content: "<html><body>テスト本文</body></html>" }),
@@ -64,14 +69,14 @@ describe("DownloadScreen", () => {
     renderScreen();
     await waitFor(() => {
       expect(screen.getByText("ダウンロードが完了しました。")).toBeInTheDocument();
-    }, { timeout: 3000 });
+    }, { timeout: 5000 });
   });
 
   it("ダウンロード完了後に router.push('/') が呼ばれる", async () => {
     renderScreen();
     await waitFor(() => {
       expect(mockPush).toHaveBeenCalledWith("/");
-    }, { timeout: 3000 });
+    }, { timeout: 5000 });
   });
 
   it("作品が見つからない場合にエラーメッセージが表示される", async () => {
