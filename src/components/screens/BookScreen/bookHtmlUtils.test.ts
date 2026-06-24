@@ -162,6 +162,11 @@ describe("getChunkForPage", () => {
     expect(getChunkForPage(19, metadata, "backward")?.chunkId).toBe(0);
   });
 
+  it("オーバーラップ外のページは該当チャンク1件のみ返す", () => {
+    expect(getChunkForPage(20, metadata, "backward")?.chunkId).toBe(1);
+    expect(getChunkForPage(20, metadata, "forward")?.chunkId).toBe(1);
+  });
+
   it("範囲外のページ番号では最後のチャンクを返す", () => {
     expect(getChunkForPage(999, metadata)?.chunkId).toBe(2);
   });
