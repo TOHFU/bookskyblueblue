@@ -11,8 +11,17 @@ import {
   extractPageExcerpt,
   estimatePageCountFromHtml,
   prepareBookDisplay,
+  prepareBookDisplayFromCache,
   getChunkForPage,
+  splitHtmlIntoBlocks,
+  createLayoutKey,
+  hashBookContent,
 } from "@/components/screens/BookScreen/bookHtmlUtils";
+import {
+  flushLayoutCache,
+  scheduleDeferredCacheBuild,
+} from "@/components/screens/BookScreen/bookLayoutCacheScheduler";
+import { getBookLayoutCache } from "@/data/repositories/bookLayoutCacheRepository";
 import type { Bookmark } from "@/domain/entities/work";
 import type { ChunkMetadata, CalculatedChunk } from "@/components/screens/BookScreen/bookHtmlUtils";
 
@@ -54,6 +63,9 @@ export function useBookScreen(identifier: string) {
   const currentChunkRef = useRef<CalculatedChunk | null>(null);
   const chunksInitializedRef = useRef(false);
   const initialPageRef = useRef(0);
+  const layoutKeyRef = useRef("");
+  const contentHashRef = useRef("");
+  const cancelDeferredCacheBuildRef = useRef<(() => void) | null>(null);
 
   const pageCountRef = useRef(1);
   const layoutParamsRef = useRef<{
@@ -63,6 +75,42 @@ export function useBookScreen(identifier: string) {
   } | null>(null);
 
   const localPage = currentPage - chunkStartPage;
+
+  const cancelDeferredCacheBuild = useCallback(() => {
+    cancelDeferredCacheBuildRef.current?.();
+    cancelDeferredCacheBuildRef.current = null;
+  }, []);
+
+  const startDeferredCacheBuild = useCallback(() => {
+    cancelDeferredCacheBuild();
+
+    const layoutKey = layoutKeyRef.current;
+    const contentHash = contentHashRef.current;
+    if (!layoutKey || !contentHash) {
+      return;
+    }
+
+    cancelDeferredCacheBuildRef.current = scheduleDeferredCacheBuild({
+      workId: identifier,
+      layoutKey,
+      contentHash,
+      getMetadata: () => chunkMetadataRef.current,
+    });
+  }, [cancelDeferredCacheBuild, identifier]);
+
+  const flushCurrentLayoutCache = useCallback(
+    (isComplete: boolean) => {
+      const metadata = chunkMetadataRef.current;
+      const layoutKey = layoutKeyRef.current;
+      const contentHash = contentHashRef.current;
+      if (!metadata || !layoutKey || !contentHash) {
+        return;
+      }
+
+      void flushLayoutCache(identifier, layoutKey, contentHash, metadata, isComplete);
+    },
+    [identifier]
+  );
 
   const showControls = useCallback(() => {
     setControlsVisible(true);
@@ -77,16 +125,25 @@ export function useBookScreen(identifier: string) {
   }, []);
 
   useEffect(() => {
+    cancelDeferredCacheBuild();
     chunksInitializedRef.current = false;
     chunkMetadataRef.current = null;
     currentChunkRef.current = null;
+    layoutKeyRef.current = "";
+    contentHashRef.current = "";
     setChunkStartPage(0);
     setIsChunkTransitioning(false);
     setIsReady(false);
     setContentLoaded(false);
     setLayoutContainerReady(false);
     setHtmlContent(null);
-  }, [identifier]);
+  }, [cancelDeferredCacheBuild, identifier]);
+
+  useEffect(() => {
+    return () => {
+      cancelDeferredCacheBuild();
+    };
+  }, [cancelDeferredCacheBuild]);
 
   useEffect(() => {
     const loadWork = async () => {
@@ -207,29 +264,67 @@ export function useBookScreen(identifier: string) {
     };
     layoutParamsRef.current = params;
 
-    const metadata = prepareBookDisplay(
-      fullHtmlContentRef.current,
-      params,
-      initialPageRef.current
-    );
-    chunkMetadataRef.current = metadata;
-    pageCountRef.current = metadata.totalPages;
-    setPageCount(metadata.totalPages);
+    let cancelled = false;
 
-    const initialChunk = getChunkForPage(initialPageRef.current, metadata, "neutral");
-    if (!initialChunk) {
-      setHtmlContent("");
+    const initializeDisplay = async () => {
+      const html = fullHtmlContentRef.current;
+      const contentHash = hashBookContent(html);
+      const layoutKey = createLayoutKey(params);
+      layoutKeyRef.current = layoutKey;
+      contentHashRef.current = contentHash;
+
+      const blocks = splitHtmlIntoBlocks(html);
+      const cached = await getBookLayoutCache(identifier, layoutKey, contentHash);
+
+      if (cancelled) {
+        return;
+      }
+
+      const metadata = cached
+        ? prepareBookDisplayFromCache(blocks, params, cached, initialPageRef.current)
+        : prepareBookDisplay(html, params, initialPageRef.current);
+
+      chunkMetadataRef.current = metadata;
+      pageCountRef.current = metadata.totalPages;
+      setPageCount(metadata.totalPages);
+
+      const initialChunk = getChunkForPage(initialPageRef.current, metadata, "neutral");
+      if (!initialChunk) {
+        setHtmlContent("");
+        chunksInitializedRef.current = true;
+        setIsReady(true);
+        return;
+      }
+
+      currentChunkRef.current = initialChunk;
+      setChunkStartPage(initialChunk.startPage);
+      setHtmlContent(initialChunk.content);
       chunksInitializedRef.current = true;
       setIsReady(true);
-      return;
-    }
 
-    currentChunkRef.current = initialChunk;
-    setChunkStartPage(initialChunk.startPage);
-    setHtmlContent(initialChunk.content);
-    chunksInitializedRef.current = true;
-    setIsReady(true);
-  }, [contentLoaded, layoutContainerReady]);
+      if (cached?.isComplete) {
+        return;
+      }
+
+      if (!cached) {
+        flushCurrentLayoutCache(false);
+      }
+
+      startDeferredCacheBuild();
+    };
+
+    void initializeDisplay();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    contentLoaded,
+    flushCurrentLayoutCache,
+    identifier,
+    layoutContainerReady,
+    startDeferredCacheBuild,
+  ]);
 
   useEffect(() => {
     if (!htmlContent) {
@@ -322,8 +417,10 @@ export function useBookScreen(identifier: string) {
   }, [changePage, currentPage, showControls]);
 
   const handleClose = useCallback(() => {
+    cancelDeferredCacheBuild();
+    flushCurrentLayoutCache(false);
     router.push("/");
-  }, [router]);
+  }, [cancelDeferredCacheBuild, flushCurrentLayoutCache, router]);
 
   const handleToggleBookmark = useCallback(async () => {
     if (!innerRef.current || !contentAreaRef.current) {
