@@ -297,6 +297,123 @@ function resolveChunkStartPageForNavigation(
   return resolveChunkStartPage(globalPage);
 }
 
+export function createLayoutKey(params: LayoutParams): string {
+  return `${Math.round(params.columnWidth)}:${Math.round(params.containerHeight)}:${Math.round(params.containerWidth)}`;
+}
+
+export function hashBookContent(html: string): string {
+  let hash = 0;
+  const step = Math.max(1, Math.floor(html.length / 256));
+
+  for (let index = 0; index < html.length; index += step) {
+    hash = (hash * 31 + html.charCodeAt(index)) | 0;
+  }
+
+  return `${html.length}:${hash}`;
+}
+
+export function chunkToStoredBoundary(chunk: CalculatedChunk) {
+  return {
+    chunkId: chunk.chunkId,
+    startPage: chunk.startPage,
+    endPage: chunk.endPage,
+    blockStart: chunk.blockStart,
+    blockEnd: chunk.blockEnd,
+  };
+}
+
+export function listNominalChunkStartPages(totalPages: number): number[] {
+  const startPages: number[] = [];
+  const seen = new Set<number>();
+
+  for (let nominalPage = 0; nominalPage < totalPages; nominalPage += CHUNK_SIZE) {
+    const startPage = resolveChunkStartPage(nominalPage);
+    if (seen.has(startPage)) {
+      continue;
+    }
+    seen.add(startPage);
+    startPages.push(startPage);
+  }
+
+  return startPages;
+}
+
+export function findNextMissingChunkStartPage(metadata: ChunkMetadata): number | null {
+  const existing = new Set(metadata.chunks.map((chunk) => chunk.startPage));
+
+  for (const startPage of listNominalChunkStartPages(metadata.totalPages)) {
+    if (!existing.has(startPage)) {
+      return startPage;
+    }
+  }
+
+  return null;
+}
+
+export function addChunkAtStartPage(
+  metadata: ChunkMetadata,
+  startPage: number
+): CalculatedChunk {
+  return ensureChunkAtStartPage(metadata, startPage);
+}
+
+export function hydrateMetadataFromCache(
+  blocks: string[],
+  params: LayoutParams,
+  cached: {
+    totalPages: number;
+    totalChunks: number;
+    chunkBoundaries: Array<{
+      chunkId: number;
+      startPage: number;
+      endPage: number;
+      blockStart: number;
+      blockEnd: number;
+    }>;
+  }
+): ChunkMetadata {
+  const chunks: CalculatedChunk[] = cached.chunkBoundaries.map((boundary) => ({
+    ...boundary,
+    content: buildChunkContent(blocks, boundary.blockStart, boundary.blockEnd),
+  }));
+
+  return {
+    totalPages: cached.totalPages,
+    totalChunks: cached.totalChunks,
+    chunks,
+    blocks,
+    layoutParams: params,
+  };
+}
+
+export function prepareBookDisplayFromCache(
+  blocks: string[],
+  params: LayoutParams,
+  cached: {
+    totalPages: number;
+    totalChunks: number;
+    chunkBoundaries: Array<{
+      chunkId: number;
+      startPage: number;
+      endPage: number;
+      blockStart: number;
+      blockEnd: number;
+    }>;
+  },
+  initialPage: number
+): ChunkMetadata {
+  const metadata = hydrateMetadataFromCache(blocks, params, cached);
+  const hasInitialChunk = metadata.chunks.some(
+    (chunk) => initialPage >= chunk.startPage && initialPage < chunk.endPage
+  );
+
+  if (!hasInitialChunk) {
+    addChunkAtStartPage(metadata, resolveChunkStartPage(initialPage));
+  }
+
+  return metadata;
+}
+
 /** 初回表示用: 総ページ数の計測と、開くページのチャンクだけを構築する */
 export function prepareBookDisplay(
   html: string,
