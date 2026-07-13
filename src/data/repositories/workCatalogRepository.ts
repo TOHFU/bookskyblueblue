@@ -1,6 +1,42 @@
 import { workSchema, type Work } from "@/domain/entities/work";
 import type { WorkCatalogRepository } from "@/domain/repositories/workCatalogRepository";
 
+/** 検索クエリが空のときに返す件数(先頭から) */
+export const CATALOG_DEFAULT_LIMIT = 100;
+/** 検索クエリがヒットしたときに返す最大件数(巨大なレスポンスを避けるための安全上限) */
+export const CATALOG_SEARCH_LIMIT = 200;
+
+/**
+ * カタログをキーワードで絞り込む(DBを持たない環境向けのフォールバック実装)。
+ * NeonWorkCatalogRepository はこれと同等の絞り込みをSQL側で行う。
+ */
+export function filterWorksByQuery(works: Work[], query: string): Work[] {
+  const trimmed = query.trim();
+
+  if (!trimmed) {
+    return works.slice(0, CATALOG_DEFAULT_LIMIT);
+  }
+
+  const lower = trimmed.toLowerCase();
+  const lowerNoSpace = lower.replace(/\s+/g, "");
+
+  const matches = works.filter((work) => {
+    const author = work.author?.toLowerCase() ?? "";
+    const authorNoSpace = author.replace(/\s+/g, "");
+
+    return (
+      work.title?.toLowerCase().includes(lower) ||
+      author.includes(lower) ||
+      authorNoSpace.includes(lowerNoSpace) ||
+      work.firstPublishedYear?.toLowerCase().includes(lower) ||
+      work.writingStyle?.toLowerCase().includes(lower) ||
+      work.publisher?.toLowerCase().includes(lower)
+    );
+  });
+
+  return matches.slice(0, CATALOG_SEARCH_LIMIT);
+}
+
 export function normalizeCatalogItem(source: unknown): Work | null {
   // 著者名は姓と名を結合して生成する
   const lastName = readString(source, ["last_name", "author", "著者名"]);
@@ -41,7 +77,8 @@ export class ApiWorkCatalogRepository implements WorkCatalogRepository {
   constructor(
     private readonly fetcher: typeof fetch = (input, init) =>
       fetch(input, init),
-    private readonly basePath = "/api/catalog"
+    private readonly basePath = "/api/catalog",
+    private readonly searchBasePath = "/api/works"
   ) {}
 
   async findAll(): Promise<Work[]> {
@@ -71,6 +108,21 @@ export class ApiWorkCatalogRepository implements WorkCatalogRepository {
     const payload = (await response.json()) as unknown;
     const parsed = workSchema.safeParse(payload);
     return parsed.success ? parsed.data : null;
+  }
+
+  async search(query: string): Promise<Work[]> {
+    const params = new URLSearchParams({ q: query });
+    const response = await this.fetcher(
+      `${this.searchBasePath}?${params.toString()}`
+    );
+
+    if (!response.ok) {
+      throw new Error("作品検索に失敗しました");
+    }
+
+    const payload = (await response.json()) as unknown;
+    const parsed = workSchema.array().safeParse(payload);
+    return parsed.success ? parsed.data : [];
   }
 }
 

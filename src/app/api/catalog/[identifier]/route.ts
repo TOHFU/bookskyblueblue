@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { serverWorkCatalogRepository } from "@/application/containers/serverWorkContainer";
 
+// カタログはDB同期スクリプト実行時のみ更新されるため、CDNキャッシュを長めに効かせる
+const CACHE_CONTROL_HEADER =
+  "public, s-maxage=3600, stale-while-revalidate=86400";
+
 /**
  * 作品メタデータ単体取得API
  */
@@ -20,7 +24,9 @@ export async function GET(
       );
     }
 
-    return NextResponse.json(work);
+    return NextResponse.json(work, {
+      headers: { "Cache-Control": CACHE_CONTROL_HEADER },
+    });
   } catch {
     return NextResponse.json(
       { error: "作品情報の取得に失敗しました" },

@@ -1,30 +1,13 @@
 import type { Work } from "@/domain/entities/work";
 import type { WorkCatalogRepository } from "@/domain/repositories/workCatalogRepository";
 
+/**
+ * 作品検索。絞り込み自体はリポジトリ実装(NeonはSQLのILIKE、静的データはJSフィルタ)に委譲する。
+ * これにより、DBを使う環境ではカタログ全件をアプリ側に転送せずに検索できる。
+ */
 export async function searchWorksUseCase(
   repository: WorkCatalogRepository,
   query: string
 ): Promise<Work[]> {
-  const catalog = await repository.findAll();
-
-  if (!query.trim()) {
-    return catalog.slice(0, 100);
-  }
-
-  const lower = query.toLowerCase().trim();
-  const lowerNoSpace = lower.replace(/\s+/g, "");
-
-  return catalog.filter((work) => {
-    const author = work.author?.toLowerCase() ?? "";
-    const authorNoSpace = author.replace(/\s+/g, "");
-
-    return (
-      work.title?.toLowerCase().includes(lower) ||
-      author.includes(lower) ||
-      authorNoSpace.includes(lowerNoSpace) ||
-      work.firstPublishedYear?.toLowerCase().includes(lower) ||
-      work.writingStyle?.toLowerCase().includes(lower) ||
-      work.publisher?.toLowerCase().includes(lower)
-    );
-  });
+  return repository.search(query);
 }
