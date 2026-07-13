@@ -2,6 +2,13 @@ import "server-only";
 import { neon } from "@neondatabase/serverless";
 import { workSchema, type Work } from "@/domain/entities/work";
 import type { WorkCatalogRepository } from "@/domain/repositories/workCatalogRepository";
+import {
+  CATALOG_DEFAULT_LIMIT,
+  CATALOG_SEARCH_LIMIT,
+} from "@/data/repositories/workCatalogRepository";
+
+// 半角/全角スペース・タブ・改行を除去して「姓 名」と「姓名」表記のゆらぎを吸収する
+const SPACE_CHARS_PATTERN = "[ \t\n\r　]+";
 
 type WorkCatalogRow = {
   id: string | null;
@@ -44,6 +51,12 @@ function toWork(row: WorkCatalogRow): Work | null {
   return parsed.success ? parsed.data : null;
 }
 
+function toWorks(rows: WorkCatalogRow[]): Work[] {
+  return rows
+    .map((row) => toWork(row))
+    .filter((value): value is Work => value !== null);
+}
+
 export class NeonWorkCatalogRepository implements WorkCatalogRepository {
   private readonly sql = neon(getDatabaseUrl());
 
@@ -65,9 +78,7 @@ export class NeonWorkCatalogRepository implements WorkCatalogRepository {
       ORDER BY id ASC
     `) as WorkCatalogRow[];
 
-    return rows
-      .map((row) => toWork(row))
-      .filter((value): value is Work => value !== null);
+    return toWorks(rows);
   }
 
   async findById(identifier: string): Promise<Work | null> {
@@ -94,5 +105,62 @@ export class NeonWorkCatalogRepository implements WorkCatalogRepository {
     }
 
     return toWork(rows[0]);
+  }
+
+  async search(query: string): Promise<Work[]> {
+    const trimmed = query.trim();
+
+    if (!trimmed) {
+      const rows = (await this.sql`
+        SELECT
+          id,
+          title,
+          subtitle,
+          original_title,
+          author,
+          first_published_year,
+          writing_style,
+          publisher,
+          source_book_name,
+          html_file_url,
+          html_file_charset
+        FROM work_catalog
+        ORDER BY id ASC
+        LIMIT ${CATALOG_DEFAULT_LIMIT}
+      `) as WorkCatalogRow[];
+
+      return toWorks(rows);
+    }
+
+    const pattern = `%${trimmed}%`;
+    const noSpacePattern = `%${trimmed.replace(/\s+/g, "")}%`;
+
+    // 絞り込みはDB側(ILIKE)で行い、全件をアプリ側に転送しないようにする
+    const rows = (await this.sql`
+      SELECT
+        id,
+        title,
+        subtitle,
+        original_title,
+        author,
+        first_published_year,
+        writing_style,
+        publisher,
+        source_book_name,
+        html_file_url,
+        html_file_charset
+      FROM work_catalog
+      WHERE
+        title ILIKE ${pattern}
+        OR author ILIKE ${pattern}
+        OR regexp_replace(author, ${SPACE_CHARS_PATTERN}, '', 'g') ILIKE ${noSpacePattern}
+        OR first_published_year ILIKE ${pattern}
+        OR writing_style ILIKE ${pattern}
+        OR publisher ILIKE ${pattern}
+      ORDER BY id ASC
+      LIMIT ${CATALOG_SEARCH_LIMIT}
+    `) as WorkCatalogRow[];
+
+    return toWorks(rows);
   }
 }

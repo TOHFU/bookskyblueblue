@@ -2,7 +2,10 @@ import "server-only";
 import works from "@/data/catalog/list_person_all_extended.json";
 import type { Work } from "@/domain/entities/work";
 import type { WorkCatalogRepository } from "@/domain/repositories/workCatalogRepository";
-import { normalizeCatalogDataset } from "@/data/repositories/workCatalogRepository";
+import {
+  filterWorksByQuery,
+  normalizeCatalogDataset,
+} from "@/data/repositories/workCatalogRepository";
 
 export class StaticJsonWorkCatalogRepository implements WorkCatalogRepository {
   private readonly catalog: Work[];
@@ -17,5 +20,9 @@ export class StaticJsonWorkCatalogRepository implements WorkCatalogRepository {
 
   async findById(identifier: string): Promise<Work | null> {
     return this.catalog.find((work) => work.id === identifier) ?? null;
+  }
+
+  async search(query: string): Promise<Work[]> {
+    return filterWorksByQuery(this.catalog, query);
   }
 }
