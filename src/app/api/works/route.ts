@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { serverWorkCatalogRepository } from "@/application/containers/serverWorkContainer";
 import { searchWorksUseCase } from "@/application/usecases/searchWorksUseCase";
 
+// 同一クエリの再検索をCDN/ブラウザで再利用し、体感レイテンシを下げる
+const CACHE_CONTROL_HEADER =
+  "public, s-maxage=300, stale-while-revalidate=3600";
+
 /**
  * 作品検索APIルート
  * クエリパラメータ q に検索ワードを受け取り、
@@ -12,5 +16,7 @@ export async function GET(request: Request) {
   const query = searchParams.get("q") ?? "";
 
   const works = await searchWorksUseCase(serverWorkCatalogRepository, query);
-  return NextResponse.json(works);
+  return NextResponse.json(works, {
+    headers: { "Cache-Control": CACHE_CONTROL_HEADER },
+  });
 }
