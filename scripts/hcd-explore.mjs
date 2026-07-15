@@ -138,14 +138,26 @@ async function main() {
   });
 
   await step("open_detail", async () => {
+    // prefetch が効くよう、結果表示後に短く待つ
+    await page.waitForTimeout(400);
     const t0 = Date.now();
     await page.getByRole("button", { name: /の詳細を見る$/ }).first().click();
     await page.waitForURL(/\/search\/detail\//);
+    await page
+      .getByRole("button", { name: /をダウンロードする$/ })
+      .first()
+      .waitFor({ timeout: 10000 });
     report.performance.detailNavMs = Date.now() - t0;
     await page.screenshot({
       path: path.join(OUT, "04-search-detail.png"),
       fullPage: true,
     });
+
+    if (report.performance.detailNavMs > 500) {
+      report.issues.push(
+        `詳細遷移が ${report.performance.detailNavMs}ms（目標: 500ms以内）`,
+      );
+    }
   });
 
   // ダウンロードは外部通信が重いので、詳細画面までの体験を主対象にする
