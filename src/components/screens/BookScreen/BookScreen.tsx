@@ -23,6 +23,9 @@ export function BookScreen({ identifier }: BookScreenProps) {
     contentAreaWidth,
     controlsVisible,
     isReady,
+    fontSizePx,
+    canDecreaseFontSize,
+    canIncreaseFontSize,
     isCurrentPageBookmarked,
     isOddPageNumber,
     containerRef,
@@ -31,6 +34,8 @@ export function BookScreen({ identifier }: BookScreenProps) {
     showControls,
     handlePrevPage,
     handleNextPage,
+    handleDecreaseFontSize,
+    handleIncreaseFontSize,
     handleToggleBookmark,
     handleClose,
   } = useBookScreen(identifier);
@@ -98,6 +103,7 @@ export function BookScreen({ identifier }: BookScreenProps) {
               transform: `translate3d(${currentPage * contentAreaWidth}px, 0, 0)`,
               transition: isReady ? "transform 0.3s ease" : "none",
               willChange: isReady ? "transform" : undefined,
+              ["--book-font-size" as string]: `${fontSizePx}px`,
             }}
             dangerouslySetInnerHTML={{ __html: htmlContent }}
           />
@@ -158,8 +164,12 @@ export function BookScreen({ identifier }: BookScreenProps) {
         currentPage={currentPage}
         pageCount={pageCount}
         isCurrentPageBookmarked={isCurrentPageBookmarked}
+        canDecreaseFontSize={canDecreaseFontSize}
+        canIncreaseFontSize={canIncreaseFontSize}
         onPrevPage={handlePrevPage}
         onNextPage={handleNextPage}
+        onDecreaseFontSize={handleDecreaseFontSize}
+        onIncreaseFontSize={handleIncreaseFontSize}
         onToggleBookmark={handleToggleBookmark}
         onClose={handleClose}
       />
