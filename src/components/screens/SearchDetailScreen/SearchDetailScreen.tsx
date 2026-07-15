@@ -1,10 +1,10 @@
 "use client";
 
-import { Box, Button, Flex } from "@chakra-ui/react";
+import { Box, Flex } from "@chakra-ui/react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
 import { AppScreenBackground } from "@/components/ui/AppScreenBackground";
 import { AppToolbar } from "@/components/ui/AppToolbar";
+import { BackButton } from "@/components/ui/BackButton";
 import { ToolbarCloseButton } from "@/components/ui/ToolbarCloseButton";
 import { WorkDetailCard } from "@/components/ui/WorkDetailCard";
 import type { Work } from "@/domain/entities/work";
@@ -51,21 +51,7 @@ export function SearchDetailScreen({ work }: SearchDetailScreenProps) {
         position="relative"
         zIndex={1}
       >
-        <Button
-          variant="solid"
-          size="md"
-          bg="gray.900"
-          color="fg.inverted"
-          h="10"
-          px="4"
-          onClick={handleBack}
-          alignSelf="flex-start"
-          fontSize="xs"
-          aria-label="検索結果に戻る"
-        >
-          <ArrowLeft size={16} />
-          BACK
-        </Button>
+        <BackButton aria-label="検索結果に戻る" onClick={handleBack} />
 
         <Box className="detail-card-fadein">
           <WorkDetailCard work={work} onDownload={handleDownload} />
@@ -74,5 +60,3 @@ export function SearchDetailScreen({ work }: SearchDetailScreenProps) {
     </Box>
   );
 }
-
-
