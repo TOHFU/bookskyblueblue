@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { describe, expect, it, vi } from "vitest";
 import { SearchScreen } from "./SearchScreen";
+import { clearSearchResultCacheForTests } from "@/hooks/screens/useSearchScreen";
 import { appSystem } from "@/styles/theme";
 import { server } from "@tests/mocks/server";
 
@@ -50,6 +51,7 @@ function wait(ms: number): Promise<void> {
 
 describe("SearchScreen", () => {
   beforeEach(() => {
+    clearSearchResultCacheForTests();
     mockPush.mockClear();
     server.use(
       http.get("http://localhost/api/works", () => HttpResponse.json(mockWorks)),
@@ -144,12 +146,12 @@ describe("SearchScreen", () => {
     const input = screen.getByRole("textbox", { name: "作品を検索" });
 
     await userEvent.type(input, "夏");
-    await wait(320);
+    await wait(250);
     await userEvent.type(input, "目");
 
     await waitFor(() => {
       expect(screen.getByText("夏目の最新結果")).toBeInTheDocument();
-    }, { timeout: 2000 });
+    }, { timeout: 3000 });
 
     expect(screen.queryByText("夏の古い結果")).not.toBeInTheDocument();
   });

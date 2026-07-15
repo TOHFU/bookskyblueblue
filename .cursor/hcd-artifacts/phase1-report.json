@@ -1,0 +1,66 @@
+{
+  "base": "http://localhost:3000",
+  "startedAt": "2026-07-15T10:00:56.136Z",
+  "steps": [
+    {
+      "name": "top_load",
+      "ok": true,
+      "durationMs": 1449
+    },
+    {
+      "name": "open_search",
+      "ok": true,
+      "durationMs": 307
+    },
+    {
+      "name": "search_query",
+      "ok": true,
+      "durationMs": 383
+    },
+    {
+      "name": "search_same_query_cached",
+      "ok": true,
+      "durationMs": 427
+    },
+    {
+      "name": "open_detail",
+      "ok": true,
+      "durationMs": 2122
+    },
+    {
+      "name": "back_to_top_and_check_empty_or_list",
+      "ok": true,
+      "durationMs": 176
+    }
+  ],
+  "apiTimings": [
+    {
+      "url": "http://localhost:3000/api/works?q=%E5%A4%8F%E7%9B%AE%E6%BC%B1%E7%9F%B3",
+      "status": 200,
+      "responseEnd": -1,
+      "requestStart": 0.128
+    },
+    {
+      "url": "http://localhost:3000/api/works?q=",
+      "status": 200,
+      "responseEnd": -1,
+      "requestStart": 0.137
+    }
+  ],
+  "performance": {
+    "topLoadMs": 1196,
+    "searchInputToResponseMs": 245,
+    "searchApiStatus": 200,
+    "searchInputToFirstResultMs": 295,
+    "searchColdMs": 295,
+    "searchCachedMs": 58,
+    "detailNavMs": 2045,
+    "webVitals": {
+      "domContentLoaded": 441.39999997615814,
+      "loadEventEnd": 1101.3999999761581,
+      "firstPaint": 552,
+      "firstContentfulPaint": 552
+    }
+  },
+  "issues": []
+}

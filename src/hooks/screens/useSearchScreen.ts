@@ -5,6 +5,38 @@ import { useRouter } from "next/navigation";
 import type { Work } from "@/domain/entities/work";
 
 const PAGE_SIZE = 10;
+const SEARCH_DEBOUNCE_MS = 200;
+const SEARCH_CACHE_LIMIT = 20;
+
+type SearchCacheEntry = {
+  works: Work[];
+  cachedAt: number;
+};
+
+const searchResultCache = new Map<string, SearchCacheEntry>();
+
+/** テスト間の干渉を避けるためのキャッシュクリア */
+export function clearSearchResultCacheForTests() {
+  searchResultCache.clear();
+}
+
+function getCachedResults(query: string): Work[] | null {
+  const entry = searchResultCache.get(query);
+  return entry ? entry.works : null;
+}
+
+function setCachedResults(query: string, works: Work[]) {
+  searchResultCache.set(query, { works, cachedAt: Date.now() });
+
+  if (searchResultCache.size <= SEARCH_CACHE_LIMIT) {
+    return;
+  }
+
+  const oldestKey = searchResultCache.keys().next().value;
+  if (oldestKey !== undefined) {
+    searchResultCache.delete(oldestKey);
+  }
+}
 
 export function useSearchScreen() {
   const router = useRouter();
@@ -16,15 +48,31 @@ export function useSearchScreen() {
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const latestQueryRef = useRef("");
   const activeRequestIdRef = useRef(0);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const fetchResults = useCallback(async (searchQuery: string) => {
     const requestId = activeRequestIdRef.current + 1;
     activeRequestIdRef.current = requestId;
+
+    const cached = getCachedResults(searchQuery);
+    if (cached) {
+      setResults(cached);
+      setDisplayedCount(PAGE_SIZE);
+      setIsLoading(false);
+      return;
+    }
+
+    abortControllerRef.current?.abort();
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
+
     setIsLoading(true);
 
     try {
       const params = new URLSearchParams({ q: searchQuery });
-      const response = await fetch(`/api/works?${params.toString()}`);
+      const response = await fetch(`/api/works?${params.toString()}`, {
+        signal: abortController.signal,
+      });
       if (!response.ok) {
         throw new Error("検索に失敗しました");
       }
@@ -37,8 +85,20 @@ export function useSearchScreen() {
         return;
       }
 
+      setCachedResults(searchQuery, data);
       setResults(data);
       setDisplayedCount(PAGE_SIZE);
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") {
+        return;
+      }
+      if (
+        searchQuery === latestQueryRef.current &&
+        requestId === activeRequestIdRef.current
+      ) {
+        setResults([]);
+        setDisplayedCount(PAGE_SIZE);
+      }
     } finally {
       if (requestId === activeRequestIdRef.current) {
         setIsLoading(false);
@@ -49,13 +109,23 @@ export function useSearchScreen() {
   useEffect(() => {
     latestQueryRef.current = query;
 
+    // 入力直後に待ち状態を出し、空白のまま固まって見えないようにする
+    const cached = getCachedResults(query);
+    if (cached) {
+      setResults(cached);
+      setDisplayedCount(PAGE_SIZE);
+      setIsLoading(false);
+    } else {
+      setIsLoading(true);
+    }
+
     if (debounceTimer.current) {
       clearTimeout(debounceTimer.current);
     }
 
     debounceTimer.current = setTimeout(() => {
       void fetchResults(query);
-    }, 300);
+    }, SEARCH_DEBOUNCE_MS);
 
     return () => {
       if (debounceTimer.current) {
