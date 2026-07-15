@@ -13,10 +13,15 @@ type DownloadScreenProps = {
  */
 export function DownloadScreen({ identifier }: DownloadScreenProps) {
   const { status, progress, errorMessage } = useDownloadScreen(identifier);
+  const statusMessage =
+    status === "done"
+      ? "ダウンロードが完了しました。"
+      : "作品をダウンロードしています。";
 
   return (
     <Box
       as="main"
+      aria-busy={status === "downloading"}
       w="375px"
       minH="770px"
       bg="bg"
@@ -31,8 +36,16 @@ export function DownloadScreen({ identifier }: DownloadScreenProps) {
       mx="auto"
     >
       {status === "error" ? (
-        <Flex direction="column" align="center" gap="4">
+        <Flex
+          as="section"
+          aria-labelledby="download-error-message"
+          direction="column"
+          align="center"
+          gap="4"
+        >
           <Text
+            id="download-error-message"
+            role="alert"
             fontSize="xs"
             fontWeight="600"
             lineHeight="5"
@@ -43,8 +56,10 @@ export function DownloadScreen({ identifier }: DownloadScreenProps) {
           </Text>
         </Flex>
       ) : (
-        <>
+        <Box as="section" aria-labelledby="download-status-message">
           <Text
+            id="download-status-message"
+            aria-live="polite"
             fontSize="3xs"
             fontWeight="600"
             lineHeight="3.5"
@@ -52,23 +67,29 @@ export function DownloadScreen({ identifier }: DownloadScreenProps) {
             textAlign="center"
             w="full"
           >
-            {status === "done" ? "ダウンロードが完了しました。" : "作品をダウンロードしています。"}
+            {statusMessage}
           </Text>
 
-          <Box w="full" bg="bg.muted" boxShadow="inset 0px 0px 0px 1px rgba(0, 0, 0, 0.05)">
+          <Box
+            mt="7"
+            w="full"
+            bg="bg.muted"
+            boxShadow="inset 0px 0px 0px 1px rgba(0, 0, 0, 0.05)"
+          >
             <Progress.Root
               value={progress}
               max={100}
               h="1.5"
               bg="bg"
               borderRadius="0"
+              aria-label="ダウンロード進捗"
             >
               <Progress.Track bg="bg" borderRadius="0">
                 <Progress.Range bg="fg" />
               </Progress.Track>
             </Progress.Root>
           </Box>
-        </>
+        </Box>
       )}
     </Box>
   );
