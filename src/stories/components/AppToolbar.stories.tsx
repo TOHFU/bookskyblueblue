@@ -1,7 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/nextjs";
-import { Button } from "@chakra-ui/react";
-import { ArrowLeft, X } from "lucide-react";
+import { BadgeHelp, Search } from "lucide-react";
 import { AppToolbar } from "@/components/ui/AppToolbar";
+import { ToolbarCloseButton } from "@/components/ui/ToolbarCloseButton";
+import { ToolbarIconButton } from "@/components/ui/ToolbarIconButton";
 
 const meta: Meta<typeof AppToolbar> = {
   title: "Components/AppToolbar",
@@ -19,36 +20,16 @@ export const Playground: Story = {
 
 export const RightOnly: Story = {
   args: {
-    rightSlot: (
-      <Button
-        variant="solid"
-        w="44px"
-        h="44px"
-        bg="gray.900"
-        color="white"
-        p="0"
-        aria-label="TOPに戻る"
-      >
-        <X size={20} />
-      </Button>
-    ),
+    rightSlot: <ToolbarCloseButton onClick={() => undefined} />,
   },
 };
 
 export const LeftOnly: Story = {
   args: {
     leftSlot: (
-      <Button
-        variant="solid"
-        w="44px"
-        h="44px"
-        bg="gray.900"
-        color="white"
-        p="0"
-        aria-label="戻る"
-      >
-        <ArrowLeft size={20} />
-      </Button>
+      <ToolbarIconButton aria-label="ヘルプを開く" onClick={() => undefined}>
+        <BadgeHelp size={20} />
+      </ToolbarIconButton>
     ),
   },
 };
@@ -56,30 +37,14 @@ export const LeftOnly: Story = {
 export const BothSlots: Story = {
   args: {
     leftSlot: (
-      <Button
-        variant="solid"
-        w="44px"
-        h="44px"
-        bg="gray.900"
-        color="white"
-        p="0"
-        aria-label="戻る"
-      >
-        <ArrowLeft size={20} />
-      </Button>
+      <ToolbarIconButton aria-label="ヘルプを開く" onClick={() => undefined}>
+        <BadgeHelp size={20} />
+      </ToolbarIconButton>
     ),
     rightSlot: (
-      <Button
-        variant="solid"
-        w="44px"
-        h="44px"
-        bg="gray.900"
-        color="white"
-        p="0"
-        aria-label="TOPに戻る"
-      >
-        <X size={20} />
-      </Button>
+      <ToolbarIconButton aria-label="検索画面へ移動" onClick={() => undefined}>
+        <Search size={20} />
+      </ToolbarIconButton>
     ),
   },
 };
