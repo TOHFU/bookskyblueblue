@@ -20,7 +20,12 @@ export async function getBookStateUseCase(
     };
   }
 
-  const page = await repository.getReadingPosition(identifier);
+  // getById に含まれる進捗を使い、追加の IndexedDB 往復を避ける
+  const page =
+    typeof work._readingPage === "number"
+      ? work._readingPage
+      : await repository.getReadingPosition(identifier);
+
   return {
     content: work.content,
     page,

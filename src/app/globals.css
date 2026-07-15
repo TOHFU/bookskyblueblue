@@ -87,7 +87,7 @@ main {
 }
 
 .detail-card-fadein {
-  animation: fadeInUp 0.4s ease forwards;
+  animation: fadeInUp 0.15s ease forwards;
 }
 
 /* ========================================
@@ -95,7 +95,7 @@ main {
    ======================================== */
 
 .book-content-fadein {
-  animation: fadeIn 0.5s ease forwards;
+  animation: fadeIn 0.2s ease forwards;
 }
 
 /* ========================================
@@ -104,6 +104,7 @@ main {
 
 /* 外側コンテナは overflow: hidden で Book.tsx 側で制御する */
 .book-content {
+  --book-font-size: 16px;
   writing-mode: vertical-rl;
   text-orientation: upright;
   /* height: 100% は親要素（contentAreaRef）に依存 */
@@ -111,12 +112,12 @@ main {
   /* コンテンツが増えるほど左方向に幅が伸びる */
   width: max-content;
   font-family: "Noto Serif JP", serif;
-  font-size: 16px;
+  font-size: var(--book-font-size);
   font-weight: 700;
   /*
     縦書きでは line-height = カラム幅（横方向の行間）になる。
-    ルビ(8px)が right 側に配置されるため、
-    本文(16px) + ルビ(8px) + 余白(8px) = 32px = 2em を設定することで、
+    ルビが right 側に配置されるため、
+    本文 + ルビ + 余白 = 2em を設定することで、
     ルビが隣カラムにはみ出さず行間も均一になる。
   */
   line-height: 2;
@@ -131,14 +132,14 @@ main {
 .book-content h2,
 .book-content h3,
 .book-content h4 {
-  font-size: 16px;
+  font-size: var(--book-font-size);
   font-weight: 700;
   margin: 0;
 }
 
 /* XHTMLのインラインstyleによるfont-size上書きをリセット（青空文庫のfont-size: smallなど） */
 .book-content * {
-  font-size: 16px !important;
+  font-size: var(--book-font-size) !important;
 }
 
 /*
