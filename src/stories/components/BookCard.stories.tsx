@@ -60,3 +60,21 @@ export const MinimalData: Story = {
     showDetailButton: true,
   },
 };
+
+export const WithReadingProgress: Story = {
+  args: {
+    showDeleteButton: true,
+    showDetailButton: true,
+    readingPage: 4,
+    totalPages: 10,
+  },
+};
+
+export const Finished: Story = {
+  args: {
+    showDeleteButton: true,
+    showDetailButton: true,
+    readingPage: 9,
+    totalPages: 10,
+  },
+};
