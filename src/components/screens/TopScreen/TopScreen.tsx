@@ -10,6 +10,7 @@ import { ErrorDialog } from "@/components/ui/ErrorDialog";
 import { ToolbarIconButton } from "@/components/ui/ToolbarIconButton";
 import { TopEmptyState } from "@/components/screens/TopScreen/TopEmptyState";
 import { TopFooter } from "@/components/screens/TopScreen/TopFooter";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { useTopScreen } from "@/hooks/screens/useTopScreen";
 
 /**
@@ -64,9 +65,10 @@ export function TopScreen() {
         position="relative"
         zIndex={1}
         className={isLoading ? undefined : "top-content-fadein"}
-        style={{ opacity: isLoading ? 0 : undefined }}
       >
-        {!isLoading && works.length === 0 ? (
+        {isLoading ? (
+          <LoadingSpinner label="保存済み作品を読み込み中" />
+        ) : works.length === 0 ? (
           <TopEmptyState onSearchClick={handleSearchClick} />
         ) : (
           <Flex as="ul" role="list" direction="column" align="stretch" gap="6" w="full">
