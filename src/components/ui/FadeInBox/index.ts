@@ -1,0 +1,1 @@
+export { FadeInBox } from "./FadeInBox";
