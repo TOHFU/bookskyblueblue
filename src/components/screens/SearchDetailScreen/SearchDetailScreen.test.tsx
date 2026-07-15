@@ -66,7 +66,9 @@ describe("SearchDetailScreen", () => {
 
   it("ダウンロードボタンクリックで router.push('/download/:id') が呼ばれる", async () => {
     renderScreen();
-    await userEvent.click(screen.getByRole("button", { name: "この作品をダウンロードする" }));
+    await userEvent.click(
+      screen.getByRole("button", { name: /をダウンロードする$/ }),
+    );
     expect(mockPush).toHaveBeenCalledWith("/download/789");
   });
 });

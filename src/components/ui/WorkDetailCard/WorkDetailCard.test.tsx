@@ -54,12 +54,16 @@ describe("WorkDetailCard", () => {
 
   it("ダウンロードボタンが表示される", () => {
     renderCard();
-    expect(screen.getByRole("button", { name: "この作品をダウンロードする" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "坊っちゃんをダウンロードする" }),
+    ).toBeInTheDocument();
   });
 
   it("ダウンロードボタンクリックで onDownload が作品オブジェクトと共に呼ばれる", async () => {
     const { onDownload } = renderCard();
-    await userEvent.click(screen.getByRole("button", { name: "この作品をダウンロードする" }));
+    await userEvent.click(
+      screen.getByRole("button", { name: "坊っちゃんをダウンロードする" }),
+    );
     expect(onDownload).toHaveBeenCalledWith(mockWork);
   });
 });
