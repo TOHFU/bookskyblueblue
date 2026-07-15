@@ -15,7 +15,9 @@ function renderToolbar(props: React.ComponentProps<typeof AppToolbar>) {
 describe("AppToolbar", () => {
   it("header ロールで描画される", () => {
     renderToolbar({});
-    expect(screen.getByRole("banner")).toBeInTheDocument();
+    expect(
+      screen.getByRole("banner", { name: "ツールバー" }),
+    ).toBeInTheDocument();
   });
 
   it("leftSlot に渡したコンテンツが表示される", () => {

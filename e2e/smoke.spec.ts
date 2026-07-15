@@ -105,7 +105,7 @@ test.describe("SEARCH DETAIL画面", () => {
     const input = page.getByRole("textbox", { name: "作品を検索" });
     await input.fill(AKUTAGAWA_QUERY);
     await page.getByRole("article").first().waitFor({ timeout: 10000 });
-    await page.getByRole("button", { name: "詳細を見る" }).first().click();
+    await page.getByRole("button", { name: /の詳細を見る$/ }).first().click();
     await expect(page).toHaveURL(/\/search\/detail\//);
   });
 
@@ -115,7 +115,7 @@ test.describe("SEARCH DETAIL画面", () => {
     const input = page.getByRole("textbox", { name: "作品を検索" });
     await input.fill(AKUTAGAWA_QUERY);
     await page.getByRole("article").first().waitFor({ timeout: 10000 });
-    await page.getByRole("button", { name: "詳細を見る" }).first().click();
+    await page.getByRole("button", { name: /の詳細を見る$/ }).first().click();
     await expect(page).toHaveURL(/\/search\/detail\//);
     await page.getByRole("button", { name: "検索結果に戻る" }).click();
     await expect(page).toHaveURL(/\/search/);
@@ -127,7 +127,7 @@ test.describe("SEARCH DETAIL画面", () => {
     const input = page.getByRole("textbox", { name: "作品を検索" });
     await input.fill(AKUTAGAWA_QUERY);
     await page.getByRole("article").first().waitFor({ timeout: 10000 });
-    await page.getByRole("button", { name: "詳細を見る" }).first().click();
+    await page.getByRole("button", { name: /の詳細を見る$/ }).first().click();
     await expect(page).toHaveURL(/\/search\/detail\//);
     await page.getByRole("button", { name: "TOPに戻る" }).click();
     await expect(page).toHaveURL("/");

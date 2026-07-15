@@ -2,10 +2,12 @@
 
 import { Box, Flex, IconButton } from "@chakra-ui/react";
 import { BadgeHelp, Search } from "lucide-react";
+import { AppScreenBackground } from "@/components/ui/AppScreenBackground";
+import { AppToolbar } from "@/components/ui/AppToolbar";
 import { BookCard } from "@/components/ui/BookCard";
 import { DeleteDialog } from "@/components/ui/DeleteDialog";
 import { ErrorDialog } from "@/components/ui/ErrorDialog";
-import { AppToolbar } from "@/components/ui/AppToolbar";
+import { ToolbarIconButton } from "@/components/ui/ToolbarIconButton";
 import { TopEmptyState } from "@/components/screens/TopScreen/TopEmptyState";
 import { TopFooter } from "@/components/screens/TopScreen/TopFooter";
 import { useTopScreen } from "@/hooks/screens/useTopScreen";
@@ -32,61 +34,31 @@ export function TopScreen() {
   } = useTopScreen();
 
   return (
-    <Box
-      as="main"
-      minH="100svh"
-      bg="bg"
-      position="relative"
-    >
-      {/* 背景画像 */}
-      <Box
-        position="fixed"
-        top="0"
-        left="0"
-        w="full"
-        h="100svh"
-        backgroundImage="url('/images/top-background.png')"
-        backgroundSize="cover"
-        backgroundPosition="center"
-        backgroundRepeat="no-repeat"
-        style={{ mixBlendMode: "multiply" }}
-        pointerEvents="none"
-        aria-hidden="true"
-        zIndex={0}
-      />
+    <Box as="main" minH="100svh" bg="bg" position="relative">
+      <AppScreenBackground />
 
-      {/* ツールバー */}
       <AppToolbar
         leftSlot={
-          <IconButton
+          <ToolbarIconButton
             aria-label="ヘルプを開く"
-            variant="solid"
-            w="11"
-            h="11"
-            bg="gray.900"
-            color="fg.inverted"
             onClick={handleHelpClick}
           >
             <BadgeHelp size={20} />
-          </IconButton>
+          </ToolbarIconButton>
         }
         rightSlot={
-          <IconButton
+          <ToolbarIconButton
             aria-label="検索画面へ移動"
-            variant="solid"
-            w="11"
-            h="11"
-            bg="gray.900"
-            color="fg.inverted"
             onClick={handleSearchClick}
           >
             <Search size={20} />
-          </IconButton>
+          </ToolbarIconButton>
         }
       />
 
-      {/* コンテンツエリア（IndexedDB ロード完了後にフェードイン） */}
       <Box
+        as="section"
+        aria-label="保存済み作品"
         p="6"
         w="full"
         position="relative"
@@ -97,25 +69,21 @@ export function TopScreen() {
         {!isLoading && works.length === 0 ? (
           <TopEmptyState onSearchClick={handleSearchClick} />
         ) : (
-          <Flex
-            direction="column"
-            align="stretch"
-            gap="6"
-            w="full"
-          >
+          <Flex as="ul" role="list" direction="column" align="stretch" gap="6" w="full">
             {works.map((work) => {
               const progress = work.id ? progressMap[work.id] : undefined;
               return (
-                <BookCard
-                  key={work.id}
-                  work={work}
-                  showDeleteButton
-                  showDetailButton
-                  onDelete={handleDeleteClick}
-                  onDetail={handleDetailClick}
-                  readingPage={progress?.page}
-                  totalPages={progress?.totalPages}
-                />
+                <Box as="li" key={work.id} listStyleType="none">
+                  <BookCard
+                    work={work}
+                    showDeleteButton
+                    showDetailButton
+                    onDelete={handleDeleteClick}
+                    onDetail={handleDetailClick}
+                    readingPage={progress?.page}
+                    totalPages={progress?.totalPages}
+                  />
+                </Box>
               );
             })}
           </Flex>
@@ -124,7 +92,6 @@ export function TopScreen() {
         <TopFooter />
       </Box>
 
-      {/* 削除確認ダイアログ */}
       <ErrorDialog
         message="アプリの初期化に失敗しました。"
         isOpen={isErrorDialogOpen}
@@ -138,7 +105,6 @@ export function TopScreen() {
         onConfirm={handleDeleteConfirm}
       />
 
-      {/* FAB: 検索ボタン */}
       <IconButton
         aria-label="検索画面へ移動"
         position="fixed"

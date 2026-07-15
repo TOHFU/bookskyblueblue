@@ -1,8 +1,11 @@
 "use client";
 
-import { Box, Button, Flex, Text } from "@chakra-ui/react";
-import { ArrowLeft, X } from "lucide-react";
+import { Box, Flex } from "@chakra-ui/react";
+import { AppScreenBackground } from "@/components/ui/AppScreenBackground";
 import { AppToolbar } from "@/components/ui/AppToolbar";
+import { BackButton } from "@/components/ui/BackButton";
+import { StatusMessage } from "@/components/ui/StatusMessage";
+import { ToolbarCloseButton } from "@/components/ui/ToolbarCloseButton";
 import { useTopDetailScreen } from "@/hooks/screens/useTopDetailScreen";
 import { BookmarkListCard } from "./BookmarkListCard";
 import { TopDetailCard } from "./TopDetailCard";
@@ -21,65 +24,28 @@ export function TopDetailScreen({ identifier }: TopDetailScreenProps) {
     handleClose,
     handleRead,
     handleOpenBookmark,
-  } =
-    useTopDetailScreen(identifier);
+  } = useTopDetailScreen(identifier);
 
   return (
     <Box as="main" minH="100svh" bg="bg" position="relative">
-      <Box
-        position="fixed"
-        top={0}
-        left={0}
-        w="full"
-        h="100svh"
-        backgroundImage="url('/images/top-background.png')"
-        backgroundSize="cover"
-        backgroundPosition="center"
-        backgroundRepeat="no-repeat"
-        style={{ mixBlendMode: "multiply" }}
-        zIndex={0}
-        pointerEvents="none"
-      />
+      <AppScreenBackground />
 
       <AppToolbar
-        rightSlot={
-          <Button
-            variant="solid"
-            w="11"
-            h="11"
-            bg="gray.900"
-            color="fg.inverted"
-            onClick={handleClose}
-            p="0"
-            aria-label="TOPに戻る"
-          >
-            <X size={20} />
-          </Button>
-        }
+        rightSlot={<ToolbarCloseButton onClick={handleClose} />}
       />
 
-      <Flex direction="column" align="stretch" gap="6" p="6" position="relative" zIndex={1}>
-        <Button
-          variant="solid"
-          w="fit-content"
-          h="10"
-          px="4"
-          bg="gray.900"
-          color="fg.inverted"
-          onClick={handleBack}
-          fontSize="xs"
-          aria-label="前の画面に戻る"
-        >
-          <ArrowLeft size={16} />
-          BACK
-        </Button>
+      <Flex
+        direction="column"
+        align="stretch"
+        gap="6"
+        p="6"
+        position="relative"
+        zIndex={1}
+      >
+        <BackButton aria-label="前の画面に戻る" onClick={handleBack} />
 
         {isLoading ? (
-          <Box bg="bg" borderWidth="2px" borderColor="border" p="6">
-            <Text fontSize="xs" fontWeight="600" lineHeight="5" color="fg">
-              読み込み中...
-            </Text>
-          </Box>
+          <StatusMessage>読み込み中...</StatusMessage>
         ) : work ? (
           <>
             <TopDetailCard
@@ -89,20 +55,33 @@ export function TopDetailScreen({ identifier }: TopDetailScreenProps) {
               onRead={handleRead}
             />
 
-            {bookmarks.map((bookmark) => (
-              <BookmarkListCard
-                key={`${bookmark.page}-${bookmark.excerpt}`}
-                bookmark={bookmark}
-                onClick={handleOpenBookmark}
-              />
-            ))}
+            {bookmarks.length > 0 && (
+              <Flex
+                as="ul"
+                role="list"
+                direction="column"
+                gap="6"
+                listStyleType="none"
+                m="0"
+                p="0"
+              >
+                {bookmarks.map((bookmark) => (
+                  <Box
+                    as="li"
+                    key={`${bookmark.page}-${bookmark.excerpt}`}
+                    listStyleType="none"
+                  >
+                    <BookmarkListCard
+                      bookmark={bookmark}
+                      onClick={handleOpenBookmark}
+                    />
+                  </Box>
+                ))}
+              </Flex>
+            )}
           </>
         ) : (
-          <Box bg="bg" borderWidth="2px" borderColor="border" p="6">
-            <Text fontSize="xs" fontWeight="600" lineHeight="5" color="fg">
-              作品が見つかりませんでした。
-            </Text>
-          </Box>
+          <StatusMessage>作品が見つかりませんでした。</StatusMessage>
         )}
       </Flex>
     </Box>

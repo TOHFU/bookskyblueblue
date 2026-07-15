@@ -1,8 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Box, Flex, Text, Badge } from "@chakra-ui/react";
+import type { KeyboardEvent } from "react";
+import { Box, Flex, Text } from "@chakra-ui/react";
 import { BookCardActionButtons } from "./BookCardActionButtons";
+import { getProgressLabel } from "./getProgressLabel";
+import { WorkMetaBadges } from "@/components/ui/WorkMetaBadges";
 import { useHapticFeedback } from "@/hooks/useHapticFeedback";
 import type { Work } from "@/domain/entities/work";
 
@@ -32,9 +35,13 @@ export function BookCard({
   totalPages,
 }: BookCardProps) {
   const [isPressed, setIsPressed] = useState(false);
-  const triggerHapticFeedback = useHapticFeedback({ duration: 10, mobileOnly: true });
+  const triggerHapticFeedback = useHapticFeedback({
+    duration: 10,
+    mobileOnly: true,
+  });
+  const isInteractive = Boolean(onDetail);
 
-  function handleCardClick() {
+  function openDetail() {
     if (!onDetail) {
       return;
     }
@@ -43,11 +50,27 @@ export function BookCard({
     onDetail(work);
   }
 
-  /** 進行ページ数の表示ラベルを返す */
-  function getProgressLabel(page: number, total: number): string {
-    if (page <= 0) return "未読";
-    if (total > 0 && page >= total - 1) return "読了";
-    return `${page + 1}ページ`;
+  function handleKeyDown(event: KeyboardEvent<HTMLElement>) {
+    if (!isInteractive) {
+      return;
+    }
+
+    if (event.key === "Enter") {
+      openDetail();
+      return;
+    }
+
+    // Space は keyup で発火させる（ネイティブ button と同挙動）
+    if (event.key === " ") {
+      event.preventDefault();
+    }
+  }
+
+  function handleKeyUp(event: KeyboardEvent<HTMLElement>) {
+    if (isInteractive && event.key === " ") {
+      event.preventDefault();
+      openDetail();
+    }
   }
 
   return (
@@ -60,19 +83,26 @@ export function BookCard({
       bg="bg"
       borderWidth="2px"
       borderColor="border"
-      aria-label={`作品: ${work.title}`}
-      transform={isPressed ? "translate(2px, 2px)" : "translate(0, 0)"}
-      transition="transform 0.06s ease-out"
-      onClick={onDetail ? handleCardClick : undefined}
+      aria-label={`作品: ${work.title ?? "無題"}`}
+      tabIndex={isInteractive ? 0 : undefined}
+      onClick={isInteractive ? openDetail : undefined}
+      onKeyDown={handleKeyDown}
+      onKeyUp={handleKeyUp}
       onTouchStart={() => setIsPressed(true)}
       onTouchEnd={() => setIsPressed(false)}
       onTouchCancel={() => setIsPressed(false)}
       onMouseDown={() => setIsPressed(true)}
       onMouseUp={() => setIsPressed(false)}
       onMouseLeave={() => setIsPressed(false)}
-      cursor={onDetail ? "pointer" : undefined}
+      cursor={isInteractive ? "pointer" : undefined}
+      transform={isPressed ? "translate(2px, 2px)" : "translate(0, 0)"}
+      transition="transform 0.06s ease-out"
+      _focusVisible={{
+        outline: "3px solid",
+        outlineColor: "fg",
+        outlineOffset: "2px",
+      }}
     >
-      {/* 本文情報エリア */}
       <Box
         display="flex"
         flexDirection="column"
@@ -81,103 +111,34 @@ export function BookCard({
         p="6"
         flex="1"
       >
-        {/* 作品名 */}
-        <Text
-          fontSize="md"
-          fontWeight="600"
-          lineHeight="7"
-          color="fg"
-        >
+        <Text fontSize="md" fontWeight="600" lineHeight="7" color="fg">
           {work.title}
         </Text>
 
-        {/* 著者名 */}
         {work.author && (
-          <Text
-            fontSize="xs"
-            fontWeight="600"
-            lineHeight="5"
-            color="fg"
-            w="full"
-          >
+          <Text fontSize="xs" fontWeight="600" lineHeight="5" color="fg" w="full">
             {work.author}
           </Text>
         )}
 
-        {/* 底本初版発行年 */}
         {work.firstPublishedYear && (
-          <Text
-            fontSize="xs"
-            fontWeight="600"
-            lineHeight="5"
-            color="fg"
-            w="full"
-          >
+          <Text fontSize="xs" fontWeight="600" lineHeight="5" color="fg" w="full">
             {work.firstPublishedYear}
           </Text>
         )}
 
-        {/* バッジエリア（文字遣い種別・出版社） */}
-        <Flex
-          direction="row"
-          justify="flex-start"
-          align="center"
-          gap="2"
-          h="10"
-        >
-          {work.writingStyle && (
-            <Badge
-              fontSize="2xs"
-              fontWeight="600"
-              lineHeight="16px"
-              color="gray.800"
-              borderColor="border"
-              borderWidth="2px"
-              bg="transparent"
-              boxShadow="none"
-              px="1.5"
-              h="5"
-              display="flex"
-              alignItems="center"
-            >
-              {work.writingStyle.length > 6 ? work.writingStyle.slice(0, 6) + "…" : work.writingStyle}
-            </Badge>
-          )}
-          {work.publisher && (
-            <Badge
-              fontSize="2xs"
-              fontWeight="600"
-              lineHeight="16px"
-              color="gray.800"
-              borderColor="border"
-              borderWidth="2px"
-              bg="transparent"
-              boxShadow="none"
-              px="1.5"
-              h="5"
-              display="flex"
-              alignItems="center"
-            >
-              {work.publisher.length > 6 ? work.publisher.slice(0, 6) + "…" : work.publisher}
-            </Badge>
-          )}
-        </Flex>
+        <WorkMetaBadges
+          writingStyle={work.writingStyle}
+          publisher={work.publisher}
+        />
 
-        {/* 進行ページ数 */}
         {readingPage !== undefined && (
-          <Text
-            fontSize="2xs"
-            fontWeight="600"
-            lineHeight="4"
-            color="fg"
-            w="full"
-          >
+          <Text fontSize="2xs" fontWeight="600" lineHeight="4" color="fg" w="full">
             {getProgressLabel(readingPage, totalPages ?? 0)}
           </Text>
         )}
       </Box>
 
-      {/* アクションボタンエリア */}
       <BookCardActionButtons
         work={work}
         showDeleteButton={showDeleteButton}

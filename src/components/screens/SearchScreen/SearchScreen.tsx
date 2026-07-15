@@ -1,27 +1,15 @@
 "use client";
 
-import { Box, Flex, IconButton, Input } from "@chakra-ui/react";
-import { X, Search, RotateCw } from "lucide-react";
-import { BookCard } from "@/components/ui/BookCard";
+import { Box, Flex, Input } from "@chakra-ui/react";
+import { Search } from "lucide-react";
+import { AppScreenBackground } from "@/components/ui/AppScreenBackground";
 import { AppToolbar } from "@/components/ui/AppToolbar";
-import { useIntersectionFadeIn } from "@/hooks/useIntersectionFadeIn";
+import { BookCard } from "@/components/ui/BookCard";
+import { FadeInBox } from "@/components/ui/FadeInBox";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import { ToolbarCloseButton } from "@/components/ui/ToolbarCloseButton";
 import { useSearchScreen } from "@/hooks/screens/useSearchScreen";
 import { SearchEmptyState } from "./SearchEmptyState";
-
-/** ビューポートに入ったタイミングでフェードインするラッパー */
-function FadeInBox({ children }: { children: React.ReactNode }) {
-  const { ref, isVisible } = useIntersectionFadeIn<HTMLDivElement>();
-
-  return (
-    <Box
-      ref={ref}
-      className={isVisible ? "search-card-fadein" : undefined}
-      style={{ opacity: isVisible ? undefined : 0 }}
-    >
-      {children}
-    </Box>
-  );
-}
 
 /**
  * SEARCH画面のコンポーネント
@@ -43,43 +31,23 @@ export function SearchScreen() {
 
   return (
     <Box as="main" minH="100svh" bg="bg" position="relative">
-      {/* 背景画像 */}
-      <Box
-        position="fixed"
-        top="0"
-        left="0"
-        w="full"
-        h="100svh"
-        backgroundImage="url('/images/top-background.png')"
-        backgroundSize="cover"
-        backgroundPosition="center"
-        backgroundRepeat="no-repeat"
-        style={{ mixBlendMode: "multiply" }}
-        pointerEvents="none"
-        aria-hidden="true"
-        zIndex={0}
-      />
+      <AppScreenBackground />
 
-      {/* ツールバー */}
       <AppToolbar
-        rightSlot={
-          <IconButton
-            aria-label="TOPに戻る"
-            variant="solid"
-            w="11"
-            h="11"
-            bg="gray.900"
-            color="fg.inverted"
-            onClick={handleClose}
-          >
-            <X size={20} />
-          </IconButton>
-        }
+        rightSlot={<ToolbarCloseButton onClick={handleClose} />}
       />
 
-      {/* コンテンツエリア */}
-      <Flex direction="column" align="stretch" gap="6" p="6" w="full" position="relative" zIndex={1}>
-        {/* 検索入力 */}
+      <Flex
+        as="section"
+        aria-label="検索"
+        direction="column"
+        align="stretch"
+        gap="6"
+        p="6"
+        w="full"
+        position="relative"
+        zIndex={1}
+      >
         <Box position="relative">
           <Box
             position="absolute"
@@ -90,6 +58,7 @@ export function SearchScreen() {
             opacity={0.7}
             zIndex={1}
             pointerEvents="none"
+            aria-hidden="true"
           >
             <Search size={16} />
           </Box>
@@ -111,7 +80,6 @@ export function SearchScreen() {
           />
         </Box>
 
-        {/* 検索結果 */}
         {!isLoading && results.length === 0 && query.length > 0 ? (
           <SearchEmptyState
             query={query}
@@ -130,25 +98,15 @@ export function SearchScreen() {
               </FadeInBox>
             ))}
 
-            {/* 無限スクロール用番兵 + ローディングアイコン */}
             {hasMore && (
-              <Flex ref={sentinelRef} justify="center" py="4">
-                <Box as="span" className="search-loading-icon" color="fg">
-                  <RotateCw size={24} />
-                </Box>
-              </Flex>
+              <Box ref={sentinelRef}>
+                <LoadingSpinner label="さらに読み込み中" />
+              </Box>
             )}
           </>
         )}
 
-        {/* ローディングインジケータ */}
-        {isLoading && (
-          <Flex justify="center" py="4">
-            <Box as="span" className="search-loading-icon" color="fg">
-              <RotateCw size={24} />
-            </Box>
-          </Flex>
-        )}
+        {isLoading && <LoadingSpinner label="検索中" />}
       </Flex>
     </Box>
   );

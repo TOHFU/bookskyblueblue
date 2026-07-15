@@ -1,10 +1,10 @@
 "use client";
 
-import { Box, Button, IconButton, Link, Text } from "@chakra-ui/react";
-import Image from "next/image";
+import { Box, Button, Text } from "@chakra-ui/react";
 import { useRouter } from "next/navigation";
-import { X } from "lucide-react";
+import { AppFooter } from "@/components/ui/AppFooter";
 import { AppToolbar } from "@/components/ui/AppToolbar";
+import { ToolbarCloseButton } from "@/components/ui/ToolbarCloseButton";
 
 /**
  * OFFLINE画面のコンポーネント
@@ -15,19 +15,7 @@ export function OfflineScreen() {
   return (
     <Box as="main" minH="100svh" position="relative">
       <AppToolbar
-        rightSlot={
-          <IconButton
-            aria-label="TOPに戻る"
-            variant="solid"
-            w="11"
-            h="11"
-            bg="gray.900"
-            color="fg.inverted"
-            onClick={() => router.push("/")}
-          >
-            <X size={20} />
-          </IconButton>
-        }
+        rightSlot={<ToolbarCloseButton onClick={() => router.push("/")} />}
       />
 
       <Box
@@ -38,6 +26,8 @@ export function OfflineScreen() {
         p="6"
       >
         <Box
+          as="section"
+          aria-labelledby="offline-heading"
           w="full"
           px="4.5"
           py="4"
@@ -46,12 +36,14 @@ export function OfflineScreen() {
           gap="6"
         >
           <Text
+            id="offline-heading"
+            as="h1"
             fontFamily="body"
             fontSize="sm"
             fontWeight="800"
             lineHeight="5"
             textAlign="center"
-            color="#27272A"
+            color="fg"
             whiteSpace="pre-line"
           >
             {"オフラインのようです\nインターネットに接続してから\n再度アクセスしてください"}
@@ -67,45 +59,7 @@ export function OfflineScreen() {
           </Button>
         </Box>
 
-        <Box
-          as="footer"
-          display="flex"
-          flexDirection="column"
-          alignItems="flex-end"
-          gap="2.5"
-          pt="32"
-          w="full"
-        >
-          <Image
-            src="/images/footer-logo.svg"
-            alt="BOOK SKY, BLUE BLUE"
-            width={40.24}
-            height={74.92}
-            priority={false}
-          />
-
-          <Link
-            href="https://tohfu-tronica.netlify.app/"
-            target="_blank"
-            rel="noopener noreferrer"
-            textDecoration="underline"
-            fontSize="12px"
-            lineHeight="16px"
-            fontWeight="400"
-            color="#27272A"
-          >
-            tohfu-tronica.netlify.app
-          </Link>
-
-          <Text
-            fontSize="12px"
-            lineHeight="16px"
-            fontWeight="400"
-            color="#27272A"
-          >
-            © tohfu-tronica
-          </Text>
-        </Box>
+        <AppFooter />
       </Box>
     </Box>
   );

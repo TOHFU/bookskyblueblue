@@ -24,35 +24,47 @@ function renderButtons(props: Partial<React.ComponentProps<typeof BookCardAction
 describe("BookCardActionButtons", () => {
   it("showDetailButton=true のとき詳細ボタンが表示される", () => {
     renderButtons({ showDetailButton: true });
-    expect(screen.getByRole("button", { name: "詳細を見る" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "テスト作品の詳細を見る" }),
+    ).toBeInTheDocument();
   });
 
   it("showDetailButton=false のとき詳細ボタンが非表示", () => {
     renderButtons({ showDetailButton: false });
-    expect(screen.queryByRole("button", { name: "詳細を見る" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "テスト作品の詳細を見る" }),
+    ).not.toBeInTheDocument();
   });
 
   it("showDeleteButton=true のとき削除ボタンが表示される", () => {
     renderButtons({ showDeleteButton: true });
-    expect(screen.getByRole("button", { name: "削除" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "テスト作品を削除" }),
+    ).toBeInTheDocument();
   });
 
   it("showDeleteButton=false のとき削除ボタンが非表示", () => {
     renderButtons({ showDeleteButton: false });
-    expect(screen.queryByRole("button", { name: "削除" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "テスト作品を削除" }),
+    ).not.toBeInTheDocument();
   });
 
   it("詳細ボタンクリックで onDetail が呼ばれる", async () => {
     const onDetail = vi.fn();
     renderButtons({ showDetailButton: true, onDetail });
-    await userEvent.click(screen.getByRole("button", { name: "詳細を見る" }));
+    await userEvent.click(
+      screen.getByRole("button", { name: "テスト作品の詳細を見る" }),
+    );
     expect(onDetail).toHaveBeenCalledWith(work);
   });
 
   it("削除ボタンクリックで onDelete が呼ばれる", async () => {
     const onDelete = vi.fn();
     renderButtons({ showDeleteButton: true, onDelete });
-    await userEvent.click(screen.getByRole("button", { name: "削除" }));
+    await userEvent.click(
+      screen.getByRole("button", { name: "テスト作品を削除" }),
+    );
     expect(onDelete).toHaveBeenCalledWith(work);
   });
 });
