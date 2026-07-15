@@ -1,9 +1,11 @@
 "use client";
 
-import { Box, Flex, IconButton, Input } from "@chakra-ui/react";
-import { X, Search, RotateCw } from "lucide-react";
-import { BookCard } from "@/components/ui/BookCard";
+import { Box, Flex, Input } from "@chakra-ui/react";
+import { Search, RotateCw } from "lucide-react";
+import { AppScreenBackground } from "@/components/ui/AppScreenBackground";
 import { AppToolbar } from "@/components/ui/AppToolbar";
+import { BookCard } from "@/components/ui/BookCard";
+import { ToolbarCloseButton } from "@/components/ui/ToolbarCloseButton";
 import { useIntersectionFadeIn } from "@/hooks/useIntersectionFadeIn";
 import { useSearchScreen } from "@/hooks/screens/useSearchScreen";
 import { SearchEmptyState } from "./SearchEmptyState";
@@ -43,38 +45,10 @@ export function SearchScreen() {
 
   return (
     <Box as="main" minH="100svh" bg="bg" position="relative">
-      {/* 背景画像 */}
-      <Box
-        position="fixed"
-        top="0"
-        left="0"
-        w="full"
-        h="100svh"
-        backgroundImage="url('/images/top-background.png')"
-        backgroundSize="cover"
-        backgroundPosition="center"
-        backgroundRepeat="no-repeat"
-        style={{ mixBlendMode: "multiply" }}
-        pointerEvents="none"
-        aria-hidden="true"
-        zIndex={0}
-      />
+      <AppScreenBackground />
 
-      {/* ツールバー */}
       <AppToolbar
-        rightSlot={
-          <IconButton
-            aria-label="TOPに戻る"
-            variant="solid"
-            w="11"
-            h="11"
-            bg="gray.900"
-            color="fg.inverted"
-            onClick={handleClose}
-          >
-            <X size={20} />
-          </IconButton>
-        }
+        rightSlot={<ToolbarCloseButton onClick={handleClose} />}
       />
 
       {/* コンテンツエリア */}

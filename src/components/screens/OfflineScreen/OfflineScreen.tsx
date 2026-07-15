@@ -1,10 +1,10 @@
 "use client";
 
-import { Box, Button, IconButton, Text } from "@chakra-ui/react";
+import { Box, Button, Text } from "@chakra-ui/react";
 import { useRouter } from "next/navigation";
-import { X } from "lucide-react";
 import { AppFooter } from "@/components/ui/AppFooter";
 import { AppToolbar } from "@/components/ui/AppToolbar";
+import { ToolbarCloseButton } from "@/components/ui/ToolbarCloseButton";
 
 /**
  * OFFLINE画面のコンポーネント
@@ -15,19 +15,7 @@ export function OfflineScreen() {
   return (
     <Box as="main" minH="100svh" position="relative">
       <AppToolbar
-        rightSlot={
-          <IconButton
-            aria-label="TOPに戻る"
-            variant="solid"
-            w="11"
-            h="11"
-            bg="gray.900"
-            color="fg.inverted"
-            onClick={() => router.push("/")}
-          >
-            <X size={20} />
-          </IconButton>
-        }
+        rightSlot={<ToolbarCloseButton onClick={() => router.push("/")} />}
       />
 
       <Box

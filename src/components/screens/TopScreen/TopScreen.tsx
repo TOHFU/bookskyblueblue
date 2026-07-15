@@ -2,10 +2,11 @@
 
 import { Box, Flex, IconButton } from "@chakra-ui/react";
 import { BadgeHelp, Search } from "lucide-react";
+import { AppScreenBackground } from "@/components/ui/AppScreenBackground";
+import { AppToolbar } from "@/components/ui/AppToolbar";
 import { BookCard } from "@/components/ui/BookCard";
 import { DeleteDialog } from "@/components/ui/DeleteDialog";
 import { ErrorDialog } from "@/components/ui/ErrorDialog";
-import { AppToolbar } from "@/components/ui/AppToolbar";
 import { TopEmptyState } from "@/components/screens/TopScreen/TopEmptyState";
 import { TopFooter } from "@/components/screens/TopScreen/TopFooter";
 import { useTopScreen } from "@/hooks/screens/useTopScreen";
@@ -38,24 +39,8 @@ export function TopScreen() {
       bg="bg"
       position="relative"
     >
-      {/* 背景画像 */}
-      <Box
-        position="fixed"
-        top="0"
-        left="0"
-        w="full"
-        h="100svh"
-        backgroundImage="url('/images/top-background.png')"
-        backgroundSize="cover"
-        backgroundPosition="center"
-        backgroundRepeat="no-repeat"
-        style={{ mixBlendMode: "multiply" }}
-        pointerEvents="none"
-        aria-hidden="true"
-        zIndex={0}
-      />
+      <AppScreenBackground />
 
-      {/* ツールバー */}
       <AppToolbar
         leftSlot={
           <IconButton
