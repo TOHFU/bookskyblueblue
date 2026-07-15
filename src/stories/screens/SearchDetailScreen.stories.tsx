@@ -23,10 +23,12 @@ const meta: Meta<typeof SearchDetailScreen> = {
     nextjs: { appDirectory: true },
   },
   args: {
-    work: sampleWork,
+    identifier: sampleWork.id!,
+    initialWork: sampleWork,
   },
   argTypes: {
-    work: { control: "object" },
+    identifier: { control: "text" },
+    initialWork: { control: "object" },
   },
 };
 
@@ -39,7 +41,8 @@ export const Default: Story = {};
 /** サブタイトルあり */
 export const WithSubtitle: Story = {
   args: {
-    work: {
+    identifier: sampleWork.id!,
+    initialWork: {
       ...sampleWork,
       subtitle: "または走れメロス",
     },
@@ -49,7 +52,8 @@ export const WithSubtitle: Story = {
 /** 最小限のデータ */
 export const MinimalData: Story = {
   args: {
-    work: {
+    identifier: "1",
+    initialWork: {
       id: "1",
       title: "吾輩ハ猫デアル",
       author: "夏目漱石",
