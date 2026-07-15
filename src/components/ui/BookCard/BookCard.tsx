@@ -4,9 +4,12 @@ import { useState } from "react";
 import type { KeyboardEvent } from "react";
 import { Box, Flex, Text } from "@chakra-ui/react";
 import { BookCardActionButtons } from "./BookCardActionButtons";
+import { getProgressLabel } from "./getProgressLabel";
 import { WorkMetaBadges } from "@/components/ui/WorkMetaBadges";
 import { useHapticFeedback } from "@/hooks/useHapticFeedback";
 import type { Work } from "@/domain/entities/work";
+
+export { getProgressLabel } from "./getProgressLabel";
 
 type BookCardProps = {
   work: Work;
@@ -23,13 +26,6 @@ type BookCardProps = {
   /** 作品の総ページ数 */
   totalPages?: number;
 };
-
-/** 進行ページ数の表示ラベルを返す */
-export function getProgressLabel(page: number, total: number): string {
-  if (page <= 0) return "未読";
-  if (total > 0 && page >= total - 1) return "読了";
-  return `${page + 1}ページ`;
-}
 
 export function BookCard({
   work,

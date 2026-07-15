@@ -18,6 +18,7 @@ export function AppToolbar({ leftSlot, rightSlot }: AppToolbarProps) {
   return (
     <Flex
       as="header"
+      aria-label="ツールバー"
       direction="row"
       justify="space-between"
       align="center"
@@ -26,11 +27,12 @@ export function AppToolbar({ leftSlot, rightSlot }: AppToolbarProps) {
       position="relative"
       zIndex={1}
     >
-      {/* 左スロット（なければ空のスペーサー） */}
-      <Flex align="center">{leftSlot ?? <span />}</Flex>
-
-      {/* 右スロット */}
-      <Flex align="center">{rightSlot}</Flex>
+      <Flex align="center" minW="11">
+        {leftSlot ?? null}
+      </Flex>
+      <Flex align="center" minW="11" justify="flex-end">
+        {rightSlot ?? null}
+      </Flex>
     </Flex>
   );
 }

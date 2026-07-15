@@ -26,7 +26,7 @@ export function BookmarkListCard({ bookmark, onClick }: BookmarkListCardProps) {
       onClick={() => onClick(bookmark.page)}
       aria-label={`${bookmark.page + 1}ページのブックマークを開く`}
     >
-      <Box color="fg" mt="0.5">
+      <Box color="fg" mt="0.5" aria-hidden="true">
         <Bookmark size={24} fill="currentColor" />
       </Box>
 
