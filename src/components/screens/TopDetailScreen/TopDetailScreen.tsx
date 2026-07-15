@@ -1,8 +1,10 @@
 "use client";
 
 import { Box, Button, Flex, Text } from "@chakra-ui/react";
-import { ArrowLeft, X } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
+import { AppScreenBackground } from "@/components/ui/AppScreenBackground";
 import { AppToolbar } from "@/components/ui/AppToolbar";
+import { ToolbarCloseButton } from "@/components/ui/ToolbarCloseButton";
 import { useTopDetailScreen } from "@/hooks/screens/useTopDetailScreen";
 import { BookmarkListCard } from "./BookmarkListCard";
 import { TopDetailCard } from "./TopDetailCard";
@@ -26,36 +28,10 @@ export function TopDetailScreen({ identifier }: TopDetailScreenProps) {
 
   return (
     <Box as="main" minH="100svh" bg="bg" position="relative">
-      <Box
-        position="fixed"
-        top={0}
-        left={0}
-        w="full"
-        h="100svh"
-        backgroundImage="url('/images/top-background.png')"
-        backgroundSize="cover"
-        backgroundPosition="center"
-        backgroundRepeat="no-repeat"
-        style={{ mixBlendMode: "multiply" }}
-        zIndex={0}
-        pointerEvents="none"
-      />
+      <AppScreenBackground />
 
       <AppToolbar
-        rightSlot={
-          <Button
-            variant="solid"
-            w="11"
-            h="11"
-            bg="gray.900"
-            color="fg.inverted"
-            onClick={handleClose}
-            p="0"
-            aria-label="TOPに戻る"
-          >
-            <X size={20} />
-          </Button>
-        }
+        rightSlot={<ToolbarCloseButton onClick={handleClose} />}
       />
 
       <Flex direction="column" align="stretch" gap="6" p="6" position="relative" zIndex={1}>
