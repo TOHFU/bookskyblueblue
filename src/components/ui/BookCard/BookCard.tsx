@@ -9,8 +9,6 @@ import { WorkMetaBadges } from "@/components/ui/WorkMetaBadges";
 import { useHapticFeedback } from "@/hooks/useHapticFeedback";
 import type { Work } from "@/domain/entities/work";
 
-export { getProgressLabel } from "./getProgressLabel";
-
 type BookCardProps = {
   work: Work;
   /** 削除ボタンを表示するか */
