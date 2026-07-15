@@ -10,6 +10,17 @@ import { extractMainContent, extractPageExcerpt, resolveBookInitialPage } from "
 import type { Bookmark } from "@/domain/entities/work";
 
 const FADE_TIMEOUT_MS = 3000;
+const FONT_SIZE_STORAGE_KEY = "book-font-size-px";
+const FONT_SIZE_STEPS = [14, 16, 18, 20] as const;
+type FontSizePx = (typeof FONT_SIZE_STEPS)[number];
+
+function readStoredFontSize(): FontSizePx {
+  if (typeof window === "undefined") {
+    return 16;
+  }
+  const raw = Number(localStorage.getItem(FONT_SIZE_STORAGE_KEY));
+  return (FONT_SIZE_STEPS.find((step) => step === raw) ?? 16) as FontSizePx;
+}
 
 export function useBookScreen(identifier: string) {
   const router = useRouter();
@@ -21,6 +32,7 @@ export function useBookScreen(identifier: string) {
   const [controlsVisible, setControlsVisible] = useState(true);
   const [isReady, setIsReady] = useState(false);
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
+  const [fontSizePx, setFontSizePx] = useState<FontSizePx>(16);
 
   const fadeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -40,6 +52,10 @@ export function useBookScreen(identifier: string) {
     fadeTimer.current = setTimeout(() => {
       setControlsVisible(false);
     }, FADE_TIMEOUT_MS);
+  }, []);
+
+  useEffect(() => {
+    setFontSizePx(readStoredFontSize());
   }, []);
 
   useEffect(() => {
@@ -110,7 +126,29 @@ export function useBookScreen(identifier: string) {
     }
 
     calcLayout();
-  }, [htmlContent, calcLayout]);
+  }, [htmlContent, fontSizePx, calcLayout]);
+
+  const handleDecreaseFontSize = useCallback(() => {
+    showControls();
+    setFontSizePx((current) => {
+      const index = FONT_SIZE_STEPS.indexOf(current);
+      const next = FONT_SIZE_STEPS[Math.max(0, index - 1)] ?? current;
+      localStorage.setItem(FONT_SIZE_STORAGE_KEY, String(next));
+      return next;
+    });
+  }, [showControls]);
+
+  const handleIncreaseFontSize = useCallback(() => {
+    showControls();
+    setFontSizePx((current) => {
+      const index = FONT_SIZE_STEPS.indexOf(current);
+      const next =
+        FONT_SIZE_STEPS[Math.min(FONT_SIZE_STEPS.length - 1, index + 1)] ??
+        current;
+      localStorage.setItem(FONT_SIZE_STORAGE_KEY, String(next));
+      return next;
+    });
+  }, [showControls]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -195,6 +233,10 @@ export function useBookScreen(identifier: string) {
     contentAreaWidth,
     controlsVisible,
     isReady,
+    fontSizePx,
+    canDecreaseFontSize: fontSizePx > FONT_SIZE_STEPS[0],
+    canIncreaseFontSize:
+      fontSizePx < FONT_SIZE_STEPS[FONT_SIZE_STEPS.length - 1],
     bookmarks,
     isCurrentPageBookmarked: bookmarks.some((bookmark) => bookmark.page === currentPage),
     isOddPageNumber: (currentPage + 1) % 2 !== 0,
@@ -204,6 +246,8 @@ export function useBookScreen(identifier: string) {
     showControls,
     handlePrevPage,
     handleNextPage,
+    handleDecreaseFontSize,
+    handleIncreaseFontSize,
     handleToggleBookmark,
     handleClose,
   };
