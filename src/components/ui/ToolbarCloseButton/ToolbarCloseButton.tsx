@@ -1,7 +1,7 @@
 "use client";
 
-import { IconButton } from "@chakra-ui/react";
 import { X } from "lucide-react";
+import { ToolbarIconButton } from "@/components/ui/ToolbarIconButton";
 
 type ToolbarCloseButtonProps = {
   onClick: () => void;
@@ -12,16 +12,8 @@ type ToolbarCloseButtonProps = {
  */
 export function ToolbarCloseButton({ onClick }: ToolbarCloseButtonProps) {
   return (
-    <IconButton
-      aria-label="TOPに戻る"
-      variant="solid"
-      w="11"
-      h="11"
-      bg="gray.900"
-      color="fg.inverted"
-      onClick={onClick}
-    >
+    <ToolbarIconButton aria-label="TOPに戻る" onClick={onClick}>
       <X size={20} />
-    </IconButton>
+    </ToolbarIconButton>
   );
 }
