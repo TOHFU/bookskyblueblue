@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Work } from "@/domain/entities/work";
+import { stashSearchDetailWork } from "@/lib/searchDetailCache";
 
 const PAGE_SIZE = 10;
 const SEARCH_DEBOUNCE_MS = 200;
@@ -164,6 +165,7 @@ export function useSearchScreen() {
   const handleDetailClick = useCallback(
     (work: Work) => {
       if (work.id) {
+        stashSearchDetailWork(work);
         router.push(`/search/detail/${work.id}`);
       }
     },
@@ -178,6 +180,15 @@ export function useSearchScreen() {
     () => results.slice(0, displayedCount),
     [displayedCount, results]
   );
+
+  // 先頭件数の詳細ルートを先読みし、タップ後の遷移待ちを短縮する
+  useEffect(() => {
+    for (const work of displayedWorks.slice(0, 5)) {
+      if (work.id) {
+        router.prefetch(`/search/detail/${work.id}`);
+      }
+    }
+  }, [displayedWorks, router]);
 
   return {
     query,

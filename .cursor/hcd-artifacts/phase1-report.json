@@ -1,36 +1,36 @@
 {
   "base": "http://localhost:3000",
-  "startedAt": "2026-07-15T10:00:56.136Z",
+  "startedAt": "2026-07-15T10:06:02.717Z",
   "steps": [
     {
       "name": "top_load",
       "ok": true,
-      "durationMs": 1449
+      "durationMs": 3075
     },
     {
       "name": "open_search",
       "ok": true,
-      "durationMs": 307
+      "durationMs": 191
     },
     {
       "name": "search_query",
       "ok": true,
-      "durationMs": 383
+      "durationMs": 435
     },
     {
       "name": "search_same_query_cached",
       "ok": true,
-      "durationMs": 427
+      "durationMs": 455
     },
     {
       "name": "open_detail",
       "ok": true,
-      "durationMs": 2122
+      "durationMs": 614
     },
     {
       "name": "back_to_top_and_check_empty_or_list",
       "ok": true,
-      "durationMs": 176
+      "durationMs": 167
     }
   ],
   "apiTimings": [
@@ -38,7 +38,7 @@
       "url": "http://localhost:3000/api/works?q=%E5%A4%8F%E7%9B%AE%E6%BC%B1%E7%9F%B3",
       "status": 200,
       "responseEnd": -1,
-      "requestStart": 0.128
+      "requestStart": 0.22
     },
     {
       "url": "http://localhost:3000/api/works?q=",
@@ -48,18 +48,18 @@
     }
   ],
   "performance": {
-    "topLoadMs": 1196,
-    "searchInputToResponseMs": 245,
+    "topLoadMs": 2953,
+    "searchInputToResponseMs": 232,
     "searchApiStatus": 200,
-    "searchInputToFirstResultMs": 295,
-    "searchColdMs": 295,
-    "searchCachedMs": 58,
-    "detailNavMs": 2045,
+    "searchInputToFirstResultMs": 305,
+    "searchColdMs": 305,
+    "searchCachedMs": 60,
+    "detailNavMs": 152,
     "webVitals": {
-      "domContentLoaded": 441.39999997615814,
-      "loadEventEnd": 1101.3999999761581,
-      "firstPaint": 552,
-      "firstContentfulPaint": 552
+      "domContentLoaded": 59.699999928474426,
+      "loadEventEnd": 655.7999999523163,
+      "firstPaint": 128,
+      "firstContentfulPaint": 128
     }
   },
   "issues": []

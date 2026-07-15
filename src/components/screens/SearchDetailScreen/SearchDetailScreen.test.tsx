@@ -1,10 +1,11 @@
 import { ChakraProvider } from "@chakra-ui/react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { SearchDetailScreen } from "./SearchDetailScreen";
 import { appSystem } from "@/styles/theme";
 import type { Work } from "@/domain/entities/work";
+import { stashSearchDetailWork } from "@/lib/searchDetailCache";
 
 const mockPush = vi.fn();
 const mockBack = vi.fn();
@@ -24,9 +25,10 @@ const mockWork: Work = {
 };
 
 function renderScreen(work = mockWork) {
+  stashSearchDetailWork(work);
   render(
     <ChakraProvider value={appSystem}>
-      <SearchDetailScreen work={work} />
+      <SearchDetailScreen identifier={work.id!} />
     </ChakraProvider>,
   );
 }
@@ -35,6 +37,7 @@ describe("SearchDetailScreen", () => {
   beforeEach(() => {
     mockPush.mockClear();
     mockBack.mockClear();
+    sessionStorage.clear();
   });
 
   it("BACKボタンが表示される", () => {
