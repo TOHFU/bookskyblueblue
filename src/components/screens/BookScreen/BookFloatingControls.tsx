@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, Flex, IconButton } from "@chakra-ui/react";
+import { Box, Flex, IconButton, Text } from "@chakra-ui/react";
 import { Bookmark, ChevronLeft, ChevronRight } from "lucide-react";
 import { ToolbarCloseButton } from "@/components/ui/ToolbarCloseButton";
 
@@ -9,8 +9,12 @@ type BookFloatingControlsProps = {
   currentPage: number;
   pageCount: number;
   isCurrentPageBookmarked: boolean;
+  canDecreaseFontSize: boolean;
+  canIncreaseFontSize: boolean;
   onPrevPage: () => void;
   onNextPage: () => void;
+  onDecreaseFontSize: () => void;
+  onIncreaseFontSize: () => void;
   onToggleBookmark: () => void;
   onClose: () => void;
 };
@@ -23,8 +27,12 @@ export function BookFloatingControls({
   currentPage,
   pageCount,
   isCurrentPageBookmarked,
+  canDecreaseFontSize,
+  canIncreaseFontSize,
   onPrevPage,
   onNextPage,
+  onDecreaseFontSize,
+  onIncreaseFontSize,
   onToggleBookmark,
   onClose,
 }: BookFloatingControlsProps) {
@@ -55,7 +63,37 @@ export function BookFloatingControls({
           <ChevronLeft size={20} />
         </IconButton>
 
+        <IconButton
+          aria-label="文字を小さくする"
+          variant="solid"
+          bg="gray.900"
+          color="fg.inverted"
+          w="11"
+          h="11"
+          onClick={onDecreaseFontSize}
+          disabled={!canDecreaseFontSize}
+        >
+          <Text fontSize="xs" fontWeight="700" aria-hidden="true">
+            A-
+          </Text>
+        </IconButton>
+
         <ToolbarCloseButton onClick={onClose} />
+
+        <IconButton
+          aria-label="文字を大きくする"
+          variant="solid"
+          bg="gray.900"
+          color="fg.inverted"
+          w="11"
+          h="11"
+          onClick={onIncreaseFontSize}
+          disabled={!canIncreaseFontSize}
+        >
+          <Text fontSize="sm" fontWeight="700" aria-hidden="true">
+            A+
+          </Text>
+        </IconButton>
 
         <IconButton
           aria-label={

@@ -13,6 +13,8 @@ const meta: Meta<typeof BookFloatingControls> = {
     currentPage: 2,
     pageCount: 10,
     isCurrentPageBookmarked: false,
+    canDecreaseFontSize: true,
+    canIncreaseFontSize: true,
   },
   argTypes: {
     visible: { control: "boolean" },
@@ -21,6 +23,8 @@ const meta: Meta<typeof BookFloatingControls> = {
     isCurrentPageBookmarked: { control: "boolean" },
     onPrevPage: { action: "onPrevPage" },
     onNextPage: { action: "onNextPage" },
+    onDecreaseFontSize: { action: "onDecreaseFontSize" },
+    onIncreaseFontSize: { action: "onIncreaseFontSize" },
     onToggleBookmark: { action: "onToggleBookmark" },
     onClose: { action: "onClose" },
   },

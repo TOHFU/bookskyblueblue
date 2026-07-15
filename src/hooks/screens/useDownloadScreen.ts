@@ -37,9 +37,10 @@ export function useDownloadScreen(identifier: string) {
         setProgress(100);
         setStatus("done");
 
+        // 完了後は TOP を経由せず、すぐに読書を始められるようにする
         setTimeout(() => {
-          router.push("/");
-        }, 800);
+          router.push(`/book/${identifier}`);
+        }, 400);
       } catch (error) {
         setStatus("error");
         setErrorMessage(
