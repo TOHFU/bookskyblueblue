@@ -94,6 +94,19 @@ describe("BookCard", () => {
     expect(onDetail).toHaveBeenCalledWith(work);
   });
 
+  it("Enterキーで詳細を開ける", () => {
+    const { article, onDetail } = renderBookCard();
+    fireEvent.keyDown(article, { key: "Enter" });
+    expect(onDetail).toHaveBeenCalledWith(work);
+  });
+
+  it("Spaceキーのkeyupで詳細を開ける", () => {
+    const { article, onDetail } = renderBookCard();
+    fireEvent.keyDown(article, { key: " " });
+    fireEvent.keyUp(article, { key: " " });
+    expect(onDetail).toHaveBeenCalledWith(work);
+  });
+
   it("非モバイル環境ではカードをクリックしても振動フィードバックを発生させない", () => {
     const vibrateMock = vi.fn();
 

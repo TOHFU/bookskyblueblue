@@ -1,7 +1,9 @@
 "use client";
 
-import { Badge, Box, Button, Flex, Text } from "@chakra-ui/react";
+import { Box, Button, Flex, Text } from "@chakra-ui/react";
 import { ArrowRight } from "lucide-react";
+import { getProgressLabel } from "@/components/ui/BookCard/getProgressLabel";
+import { WorkMetaBadges } from "@/components/ui/WorkMetaBadges";
 import type { Work } from "@/domain/entities/work";
 
 type TopDetailCardProps = {
@@ -11,21 +13,23 @@ type TopDetailCardProps = {
   onRead: () => void;
 };
 
-function getProgressLabel(page: number, totalPages: number): string {
-  if (page <= 0) {
-    return "未読";
-  }
+export function TopDetailCard({
+  work,
+  readingPage,
+  totalPages,
+  onRead,
+}: TopDetailCardProps) {
+  const title = work.title ?? "無題";
 
-  if (totalPages > 0 && page >= totalPages - 1) {
-    return "読了";
-  }
-
-  return `${page + 1}ページ`;
-}
-
-export function TopDetailCard({ work, readingPage, totalPages, onRead }: TopDetailCardProps) {
   return (
-    <Box bg="bg" borderWidth="2px" borderColor="border" w="full">
+    <Box
+      as="article"
+      aria-label={`作品詳細: ${title}`}
+      bg="bg"
+      borderWidth="2px"
+      borderColor="border"
+      w="full"
+    >
       <Flex direction="column" justify="center" gap="2.5" p="6">
         {work.id && (
           <Text fontSize="3xs" fontWeight="600" lineHeight="3.5" color="fg">
@@ -33,7 +37,7 @@ export function TopDetailCard({ work, readingPage, totalPages, onRead }: TopDeta
           </Text>
         )}
 
-        <Text fontSize="md" fontWeight="600" lineHeight="7" color="fg">
+        <Text as="h2" fontSize="md" fontWeight="600" lineHeight="7" color="fg">
           {work.title}
         </Text>
 
@@ -61,46 +65,19 @@ export function TopDetailCard({ work, readingPage, totalPages, onRead }: TopDeta
           </Text>
         )}
 
-        <Flex direction="row" align="center" gap="2" flexWrap="wrap">
-          {work.writingStyle && (
-            <Badge
-              variant="outline"
-              fontSize="2xs"
-              fontWeight="600"
-              color="gray.800"
-              borderColor="border"
-              borderWidth="2px"
-              bg="transparent"
-              boxShadow="none"
-              px="1.5"
-              h="5"
-            >
-              {work.writingStyle.length > 6
-                ? `${work.writingStyle.slice(0, 6)}…`
-                : work.writingStyle}
-            </Badge>
-          )}
-
-          {work.publisher && (
-            <Badge
-              variant="outline"
-              fontSize="2xs"
-              fontWeight="600"
-              color="gray.800"
-              borderColor="border"
-              borderWidth="2px"
-              bg="transparent"
-              boxShadow="none"
-              px="1.5"
-              h="5"
-            >
-              {work.publisher.length > 6 ? `${work.publisher.slice(0, 6)}…` : work.publisher}
-            </Badge>
-          )}
-        </Flex>
+        <WorkMetaBadges
+          writingStyle={work.writingStyle}
+          publisher={work.publisher}
+        />
 
         {work.sourceBookName && (
-          <Text fontSize="xs" fontWeight="600" lineHeight="5" color="fg" maxW="227px">
+          <Text
+            fontSize="xs"
+            fontWeight="600"
+            lineHeight="5"
+            color="fg"
+            maxW="227px"
+          >
             {work.sourceBookName}
           </Text>
         )}

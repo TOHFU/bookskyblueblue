@@ -24,9 +24,13 @@ describe("SearchEmptyState", () => {
     expect(screen.getByText("該当する作品がありません")).toBeInTheDocument();
   });
 
-  it("「別のキーワードで検索してください」メッセージが表示される", () => {
-    renderEmptyState();
-    expect(screen.getByText("別のキーワードで検索してください")).toBeInTheDocument();
+  it("検索クエリを含む案内メッセージが表示される", () => {
+    renderEmptyState({ query: "芥川龍之介" });
+    expect(
+      screen.getByText(
+        "「芥川龍之介」に一致する作品は見つかりませんでした。別のキーワードで検索してください",
+      ),
+    ).toBeInTheDocument();
   });
 
   it("サンプル検索条件「夏目漱石」が表示される", () => {
