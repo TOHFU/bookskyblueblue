@@ -72,10 +72,10 @@ describe("DownloadScreen", () => {
     }, { timeout: 5000 });
   });
 
-  it("ダウンロード完了後に router.push('/') が呼ばれる", async () => {
+  it("ダウンロード完了後に router.push('/book/:id') が呼ばれる", async () => {
     renderScreen();
     await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith("/");
+      expect(mockPush).toHaveBeenCalledWith("/book/test-001");
     }, { timeout: 5000 });
   });
 
