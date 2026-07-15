@@ -1,9 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import { Box, Flex, IconButton, Text } from "@chakra-ui/react";
-import { Bookmark, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { Box, Flex, Text } from "@chakra-ui/react";
 import { useBookScreen } from "@/hooks/screens/useBookScreen";
+import { BookFloatingControls } from "./BookFloatingControls";
 
 type BookScreenProps = {
   identifier: string;
@@ -39,6 +39,7 @@ export function BookScreen({ identifier }: BookScreenProps) {
     <Box
       ref={containerRef}
       as="main"
+      aria-label="作品本文"
       w="full"
       h="100svh"
       bg="bg"
@@ -58,7 +59,6 @@ export function BookScreen({ identifier }: BookScreenProps) {
         overflow="hidden"
         style={{ contain: "layout" }}
       >
-        {/* ローディング中またはレイアウト計算中はローディングアイコンを表示 */}
         {!isReady && (
           <Flex
             w="full"
@@ -68,22 +68,31 @@ export function BookScreen({ identifier }: BookScreenProps) {
             position="absolute"
             top="0"
             left="0"
+            role="status"
+            aria-live="polite"
           >
             <Box as="span" className="search-loading-icon" color="fg">
-              <Image src="/icons/rotate-cw.svg" alt="ローディング" width={24} height={24} />
+              <Image
+                src="/icons/rotate-cw.svg"
+                alt="読み込み中"
+                width={24}
+                height={24}
+              />
             </Box>
           </Flex>
         )}
 
-        {/* コンテンツ: htmlContent設定後は常にDOMに存在させてcalcLayoutを機能させる */}
         {htmlContent !== null && (
           <Box
             ref={innerRef}
-            className={isReady ? "book-content book-content-fadein" : "book-content"}
+            className={
+              isReady ? "book-content book-content-fadein" : "book-content"
+            }
             position="absolute"
             right="0"
             top="0"
             h="full"
+            aria-hidden={!isReady}
             style={{
               opacity: isReady ? undefined : 0,
               transform: `translate3d(${currentPage * contentAreaWidth}px, 0, 0)`,
@@ -95,7 +104,6 @@ export function BookScreen({ identifier }: BookScreenProps) {
         )}
       </Box>
 
-      {/* ページ番号: 奇数ページ→右下、偶数ページ→左下 */}
       <Text
         position="absolute"
         bottom="2em"
@@ -105,12 +113,15 @@ export function BookScreen({ identifier }: BookScreenProps) {
         fontWeight="700"
         lineHeight="18px"
         color="fg"
+        aria-live="polite"
+        aria-atomic="true"
       >
         {currentPage + 1}
       </Text>
 
-      {/* クリックゾーン：右半分 → ページ-1（前のページ）*/}
+      {/* タップ用ゾーンは装飾的なショートカット。キーボード操作はナビボタンを使う */}
       <Box
+        aria-hidden="true"
         position="absolute"
         top="0"
         right="0"
@@ -120,9 +131,8 @@ export function BookScreen({ identifier }: BookScreenProps) {
         onClick={handlePrevPage}
         cursor="pointer"
       />
-
-      {/* クリックゾーン：左半分 → ページ+1（次のページ）*/}
       <Box
+        aria-hidden="true"
         position="absolute"
         top="0"
         left="0"
@@ -132,9 +142,8 @@ export function BookScreen({ identifier }: BookScreenProps) {
         onClick={handleNextPage}
         cursor="pointer"
       />
-
-      {/* クリックゾーン：FloatingControlエリア → showControls */}
       <Box
+        aria-hidden="true"
         position="absolute"
         bottom="0"
         left="0"
@@ -144,72 +153,16 @@ export function BookScreen({ identifier }: BookScreenProps) {
         onClick={showControls}
       />
 
-      {/* フローティングコントロール */}
-      <Box
-        position="absolute"
-        bottom="0"
-        left="50%"
-        transform="translateX(-50%)"
-        opacity={controlsVisible ? 1 : 0}
-        transition="opacity 0.5s ease"
-        pointerEvents={controlsVisible ? "auto" : "none"}
-        zIndex={2}
-      >
-        <Flex direction="row" align="center">
-          {/* 前のページへ（← → 次への方向なので left押下で+1） */}
-          <IconButton
-            aria-label="次のページ"
-            variant="solid"
-            bg="gray.900"
-            color="fg.inverted"
-            w="11"
-            h="11"
-            onClick={handleNextPage}
-            disabled={currentPage >= pageCount - 1}
-          >
-            <ChevronLeft size={20} />
-          </IconButton>
-
-          {/* TOPに戻る */}
-          <IconButton
-            aria-label="TOPに戻る"
-            variant="solid"
-            bg="gray.900"
-            color="fg.inverted"
-            w="11"
-            h="11"
-            onClick={handleClose}
-          >
-            <X size={20} />
-          </IconButton>
-
-          <IconButton
-            aria-label={isCurrentPageBookmarked ? "ブックマークを解除" : "ブックマークを追加"}
-            variant="solid"
-            bg={isCurrentPageBookmarked ? "fg" : "gray.900"}
-            color="fg.inverted"
-            w="11"
-            h="11"
-            onClick={handleToggleBookmark}
-          >
-            <Bookmark size={20} fill={isCurrentPageBookmarked ? "currentColor" : "none"} />
-          </IconButton>
-
-          {/* 右を押したら前のページ（縦書き本の進行方向） */}
-          <IconButton
-            aria-label="前のページ"
-            variant="solid"
-            bg="gray.900"
-            color="fg.inverted"
-            w="11"
-            h="11"
-            onClick={handlePrevPage}
-            disabled={currentPage <= 0}
-          >
-            <ChevronRight size={20} />
-          </IconButton>
-        </Flex>
-      </Box>
+      <BookFloatingControls
+        visible={controlsVisible}
+        currentPage={currentPage}
+        pageCount={pageCount}
+        isCurrentPageBookmarked={isCurrentPageBookmarked}
+        onPrevPage={handlePrevPage}
+        onNextPage={handleNextPage}
+        onToggleBookmark={handleToggleBookmark}
+        onClose={handleClose}
+      />
     </Box>
   );
 }
