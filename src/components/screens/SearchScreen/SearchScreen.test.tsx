@@ -101,8 +101,10 @@ describe("SearchScreen", () => {
     await waitFor(() => {
       expect(screen.getByText("坊っちゃん")).toBeInTheDocument();
     }, { timeout: 2000 });
-    const detailButtons = screen.getAllByRole("button", { name: "詳細を見る" });
-    await userEvent.click(detailButtons[0]);
+    const detailButton = screen.getByRole("button", {
+      name: "坊っちゃんの詳細を見る",
+    });
+    await userEvent.click(detailButton);
     expect(mockPush).toHaveBeenCalledWith("/search/detail/001");
   });
 

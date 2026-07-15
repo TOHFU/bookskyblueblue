@@ -19,6 +19,8 @@ export function BookCardActionButtons({
   onDelete,
   onDetail,
 }: BookCardActionButtonsProps) {
+  const title = work.title ?? "無題";
+
   return (
     <Box
       position="relative"
@@ -32,7 +34,7 @@ export function BookCardActionButtons({
     >
       {showDeleteButton && (
         <IconButton
-          aria-label="削除"
+          aria-label={`${title}を削除`}
           variant="outline"
           size="xs"
           borderColor="border"
@@ -43,14 +45,17 @@ export function BookCardActionButtons({
           position="absolute"
           top="-2px"
           right="-2px"
-          onClick={(e) => { e.stopPropagation(); onDelete?.(work); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete?.(work);
+          }}
         >
           <X size={16} />
         </IconButton>
       )}
       {showDetailButton && (
         <IconButton
-          aria-label="詳細を見る"
+          aria-label={`${title}の詳細を見る`}
           variant="outline"
           size="xs"
           borderColor="border"
@@ -61,7 +66,10 @@ export function BookCardActionButtons({
           position="relative"
           bottom="-2px"
           right="-2px"
-          onClick={(e) => { e.stopPropagation(); onDetail?.(work); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            onDetail?.(work);
+          }}
         >
           <ArrowRight size={16} />
         </IconButton>

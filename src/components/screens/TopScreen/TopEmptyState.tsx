@@ -13,6 +13,8 @@ type TopEmptyStateProps = {
 export function TopEmptyState({ onSearchClick }: TopEmptyStateProps) {
   return (
     <Flex
+      as="section"
+      aria-labelledby="top-empty-heading"
       direction="column"
       align="center"
       gap="6"
@@ -23,11 +25,13 @@ export function TopEmptyState({ onSearchClick }: TopEmptyStateProps) {
       borderColor="border"
       w="full"
     >
-      <Box color="fg">
+      <Box color="fg" aria-hidden="true">
         <Book size={32} strokeWidth={1.5} />
       </Box>
 
       <Text
+        id="top-empty-heading"
+        as="h2"
         fontSize="sm"
         fontWeight="800"
         lineHeight="6"
