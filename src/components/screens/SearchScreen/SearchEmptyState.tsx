@@ -1,9 +1,9 @@
 "use client";
 
-import { Box, Flex, Text } from "@chakra-ui/react";
+import { Box, Button, Flex, Text } from "@chakra-ui/react";
 import { SearchX } from "lucide-react";
 
-const SAMPLE_QUERIES = ["夏目漱石", "檸檬"];
+const SAMPLE_QUERIES = ["夏目漱石", "檸檬"] as const;
 
 type SearchEmptyStateProps = {
   query: string;
@@ -13,9 +13,14 @@ type SearchEmptyStateProps = {
 /**
  * 検索結果が0件の場合に表示するEmptyState
  */
-export function SearchEmptyState({ query, onSampleClick }: SearchEmptyStateProps) {
+export function SearchEmptyState({
+  query,
+  onSampleClick,
+}: SearchEmptyStateProps) {
   return (
     <Flex
+      as="section"
+      aria-labelledby="search-empty-heading"
       direction="column"
       align="center"
       gap="4"
@@ -26,11 +31,13 @@ export function SearchEmptyState({ query, onSampleClick }: SearchEmptyStateProps
       borderColor="border"
       w="full"
     >
-      <Box color="fg">
+      <Box color="fg" aria-hidden="true">
         <SearchX size={32} strokeWidth={1.5} />
       </Box>
 
       <Text
+        id="search-empty-heading"
+        as="h2"
         fontSize="sm"
         fontWeight="800"
         lineHeight="6"
@@ -49,30 +56,40 @@ export function SearchEmptyState({ query, onSampleClick }: SearchEmptyStateProps
         textAlign="center"
         w="full"
       >
-        別のキーワードで検索してください
+        「{query}」に一致する作品は見つかりませんでした。別のキーワードで検索してください
       </Text>
 
-      {/* サンプル検索条件 */}
-      <Box w="214px">
-        <Flex direction="column" gap="1">
-          {SAMPLE_QUERIES.map((sample) => (
-            <Text
-              key={sample}
-              as="button"
+      <Box
+        as="ul"
+        role="list"
+        listStyleType="none"
+        m="0"
+        p="0"
+        w="214px"
+        display="flex"
+        flexDirection="column"
+        gap="1"
+      >
+        {SAMPLE_QUERIES.map((sample) => (
+          <Box as="li" key={sample}>
+            <Button
+              variant="plain"
+              h="auto"
+              minH="unset"
+              p="0"
               fontSize="xs"
               fontWeight="600"
               lineHeight="5"
               color="fg"
               textDecoration="underline"
-              textAlign="left"
-              cursor="pointer"
+              justifyContent="flex-start"
               onClick={() => onSampleClick(sample)}
               aria-label={`${sample}で検索`}
             >
-              {"  ・"}{sample}
-            </Text>
-          ))}
-        </Flex>
+              ・{sample}
+            </Button>
+          </Box>
+        ))}
       </Box>
     </Flex>
   );
