@@ -181,12 +181,12 @@ export function useSearchScreen() {
     [displayedCount, results]
   );
 
-  // 先頭件数の詳細ルートを先読みし、タップ後の遷移待ちを短縮する
+  // 先頭件数の詳細ルートとカタログAPIを先読みし、タップ後の待ちを短縮する
   useEffect(() => {
     for (const work of displayedWorks.slice(0, 5)) {
-      if (work.id) {
-        router.prefetch(`/search/detail/${work.id}`);
-      }
+      if (!work.id) continue;
+      router.prefetch?.(`/search/detail/${work.id}`);
+      void fetch(`/api/catalog/${work.id}`).catch(() => undefined);
     }
   }, [displayedWorks, router]);
 

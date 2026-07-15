@@ -12,6 +12,7 @@ vi.mock("next/navigation", () => ({
     push: mockPush,
     back: vi.fn(),
     replace: vi.fn(),
+    prefetch: vi.fn(),
   }),
 }));
 
@@ -44,18 +45,23 @@ describe("useSearchScreen", () => {
       expect(result.current.results).toHaveLength(1);
     });
 
-    const callsAfterFirstHit = vi.mocked(fetch).mock.calls.length;
+    const worksFetchCount = () =>
+      vi
+        .mocked(fetch)
+        .mock.calls.filter(([input]) => String(input).includes("/api/works")).length;
+
+    const callsAfterFirstHit = worksFetchCount();
 
     act(() => {
       result.current.handleQueryChange("別クエリ");
     });
 
     await waitFor(() => {
-      expect(vi.mocked(fetch).mock.calls.length).toBeGreaterThan(callsAfterFirstHit);
+      expect(worksFetchCount()).toBeGreaterThan(callsAfterFirstHit);
       expect(result.current.isLoading).toBe(false);
     });
 
-    const callsAfterOtherQuery = vi.mocked(fetch).mock.calls.length;
+    const callsAfterOtherQuery = worksFetchCount();
 
     act(() => {
       result.current.handleQueryChange("夏目漱石");
@@ -63,7 +69,7 @@ describe("useSearchScreen", () => {
 
     expect(result.current.results[0]?.title).toBe("坊っちゃん");
     expect(result.current.isLoading).toBe(false);
-    expect(vi.mocked(fetch).mock.calls.length).toBe(callsAfterOtherQuery);
+    expect(worksFetchCount()).toBe(callsAfterOtherQuery);
   });
 
   it("入力直後に isLoading が true になる", () => {

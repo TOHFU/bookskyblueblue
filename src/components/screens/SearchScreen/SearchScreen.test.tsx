@@ -15,6 +15,7 @@ vi.mock("next/navigation", () => ({
     push: mockPush,
     back: vi.fn(),
     replace: vi.fn(),
+    prefetch: vi.fn(),
   }),
 }));
 
