@@ -1,36 +1,36 @@
 {
   "base": "http://localhost:3000",
-  "startedAt": "2026-07-15T10:06:02.717Z",
+  "startedAt": "2026-07-16T07:28:43.198Z",
   "steps": [
     {
       "name": "top_load",
       "ok": true,
-      "durationMs": 3075
+      "durationMs": 4306
     },
     {
       "name": "open_search",
       "ok": true,
-      "durationMs": 191
+      "durationMs": 208
     },
     {
       "name": "search_query",
       "ok": true,
-      "durationMs": 435
+      "durationMs": 3332
     },
     {
       "name": "search_same_query_cached",
       "ok": true,
-      "durationMs": 455
+      "durationMs": 410
     },
     {
       "name": "open_detail",
       "ok": true,
-      "durationMs": 614
+      "durationMs": 1558
     },
     {
       "name": "back_to_top_and_check_empty_or_list",
       "ok": true,
-      "durationMs": 167
+      "durationMs": 187
     }
   ],
   "apiTimings": [
@@ -38,29 +38,61 @@
       "url": "http://localhost:3000/api/works?q=%E5%A4%8F%E7%9B%AE%E6%BC%B1%E7%9F%B3",
       "status": 200,
       "responseEnd": -1,
-      "requestStart": 0.22
+      "requestStart": 0.266
+    },
+    {
+      "url": "http://localhost:3000/api/catalog/1073",
+      "status": 200,
+      "responseEnd": -1,
+      "requestStart": 0.085
+    },
+    {
+      "url": "http://localhost:3000/api/catalog/1076",
+      "status": 200,
+      "responseEnd": -1,
+      "requestStart": 0.078
+    },
+    {
+      "url": "http://localhost:3000/api/catalog/1086",
+      "status": 200,
+      "responseEnd": -1,
+      "requestStart": 0.353
+    },
+    {
+      "url": "http://localhost:3000/api/catalog/1102",
+      "status": 200,
+      "responseEnd": -1,
+      "requestStart": 0.3
+    },
+    {
+      "url": "http://localhost:3000/api/catalog/1046",
+      "status": 200,
+      "responseEnd": -1,
+      "requestStart": 0.199
     },
     {
       "url": "http://localhost:3000/api/works?q=",
       "status": 200,
       "responseEnd": -1,
-      "requestStart": 0.137
+      "requestStart": 0.108
     }
   ],
   "performance": {
-    "topLoadMs": 2953,
-    "searchInputToResponseMs": 232,
+    "topLoadMs": 4194,
+    "searchInputToResponseMs": 1438,
     "searchApiStatus": 200,
-    "searchInputToFirstResultMs": 305,
-    "searchColdMs": 305,
-    "searchCachedMs": 60,
-    "detailNavMs": 152,
+    "searchInputToFirstResultMs": 3238,
+    "searchColdMs": 3238,
+    "searchCachedMs": 53,
+    "detailNavMs": 1118,
     "webVitals": {
-      "domContentLoaded": 59.699999928474426,
-      "loadEventEnd": 655.7999999523163,
-      "firstPaint": 128,
-      "firstContentfulPaint": 128
+      "domContentLoaded": 410.7999999523163,
+      "loadEventEnd": 1093,
+      "firstPaint": 460,
+      "firstContentfulPaint": 460
     }
   },
-  "issues": []
+  "issues": [
+    "詳細遷移が 1118ms（目標: 500ms以内）"
+  ]
 }
