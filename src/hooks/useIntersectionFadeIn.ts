@@ -10,10 +10,11 @@ function isInViewport(element: Element): boolean {
 export function useIntersectionFadeIn<T extends Element>() {
   const ref = useRef<T | null>(null);
   const [isVisible, setIsVisible] = useState(false);
+  // スクロールで画面内に入ってきた要素にのみフェードイン演出を適用するためのフラグ。
+  // 初回マウント時点で既に画面内にある要素はアニメーションなしで即時に不透明表示する
+  // （0.3s等のフェード時間中に「結果が薄く透けて見える」状態を作らないため）。
+  const [shouldAnimate, setShouldAnimate] = useState(false);
 
-  // マウント直後から画面内にある要素は、IntersectionObserverの非同期通知を
-  // 待たずに即時可視化する。これにより初回表示直後に結果が一瞬見えなくなる
-  // 空白フレームを防ぐ（フェードインは画面外から入ってくる要素のみに適用）。
   useLayoutEffect(() => {
     const element = ref.current;
     if (!element) {
@@ -28,6 +29,7 @@ export function useIntersectionFadeIn<T extends Element>() {
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
+          setShouldAnimate(true);
           setIsVisible(true);
           observer.disconnect();
         }
@@ -42,5 +44,6 @@ export function useIntersectionFadeIn<T extends Element>() {
   return {
     ref,
     isVisible,
+    shouldAnimate,
   };
 }
