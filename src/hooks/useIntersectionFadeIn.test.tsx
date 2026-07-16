@@ -3,8 +3,12 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { useIntersectionFadeIn } from "./useIntersectionFadeIn";
 
 function TestTarget() {
-  const { ref, isVisible } = useIntersectionFadeIn<HTMLDivElement>();
-  return <div ref={ref}>{isVisible ? "visible" : "hidden"}</div>;
+  const { ref, isVisible, shouldAnimate } = useIntersectionFadeIn<HTMLDivElement>();
+  return (
+    <div ref={ref}>
+      {isVisible ? "visible" : "hidden"} / {shouldAnimate ? "animate" : "no-animate"}
+    </div>
+  );
 }
 
 function mockBoundingClientRect(rect: Pick<DOMRect, "top" | "bottom">) {
@@ -26,12 +30,12 @@ describe("useIntersectionFadeIn", () => {
     vi.restoreAllMocks();
   });
 
-  it("マウント時点で画面内にある要素はIntersectionObserverの通知を待たずに即時可視化する", () => {
+  it("マウント時点で画面内にある要素はIntersectionObserverの通知を待たずに即時可視化し、フェードインは適用しない", () => {
     mockBoundingClientRect({ top: 10, bottom: 20 });
 
     render(<TestTarget />);
 
-    expect(screen.getByText("visible")).toBeInTheDocument();
+    expect(screen.getByText("visible / no-animate")).toBeInTheDocument();
   });
 
   it("マウント時点で画面外にある要素はIntersectionObserverの通知が来るまで非表示のままにする", () => {
@@ -39,6 +43,6 @@ describe("useIntersectionFadeIn", () => {
 
     render(<TestTarget />);
 
-    expect(screen.getByText("hidden")).toBeInTheDocument();
+    expect(screen.getByText("hidden / no-animate")).toBeInTheDocument();
   });
 });

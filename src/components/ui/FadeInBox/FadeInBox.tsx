@@ -16,12 +16,12 @@ export function FadeInBox({
   children,
   animationClassName = "search-card-fadein",
 }: FadeInBoxProps) {
-  const { ref, isVisible } = useIntersectionFadeIn<HTMLDivElement>();
+  const { ref, isVisible, shouldAnimate } = useIntersectionFadeIn<HTMLDivElement>();
 
   return (
     <Box
       ref={ref}
-      className={isVisible ? animationClassName : undefined}
+      className={shouldAnimate ? animationClassName : undefined}
       style={{ opacity: isVisible ? undefined : 0 }}
     >
       {children}
