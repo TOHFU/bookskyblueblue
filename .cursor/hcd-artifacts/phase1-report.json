@@ -1,36 +1,36 @@
 {
   "base": "http://localhost:3000",
-  "startedAt": "2026-07-16T07:28:43.198Z",
+  "startedAt": "2026-07-16T07:36:42.450Z",
   "steps": [
     {
       "name": "top_load",
       "ok": true,
-      "durationMs": 4306
+      "durationMs": 6852
     },
     {
       "name": "open_search",
       "ok": true,
-      "durationMs": 208
+      "durationMs": 211
     },
     {
       "name": "search_query",
       "ok": true,
-      "durationMs": 3332
+      "durationMs": 547
     },
     {
       "name": "search_same_query_cached",
       "ok": true,
-      "durationMs": 410
+      "durationMs": 465
     },
     {
       "name": "open_detail",
       "ok": true,
-      "durationMs": 1558
+      "durationMs": 910
     },
     {
       "name": "back_to_top_and_check_empty_or_list",
       "ok": true,
-      "durationMs": 187
+      "durationMs": 166
     }
   ],
   "apiTimings": [
@@ -38,61 +38,149 @@
       "url": "http://localhost:3000/api/works?q=%E5%A4%8F%E7%9B%AE%E6%BC%B1%E7%9F%B3",
       "status": 200,
       "responseEnd": -1,
-      "requestStart": 0.266
-    },
-    {
-      "url": "http://localhost:3000/api/catalog/1073",
-      "status": 200,
-      "responseEnd": -1,
-      "requestStart": 0.085
-    },
-    {
-      "url": "http://localhost:3000/api/catalog/1076",
-      "status": 200,
-      "responseEnd": -1,
-      "requestStart": 0.078
-    },
-    {
-      "url": "http://localhost:3000/api/catalog/1086",
-      "status": 200,
-      "responseEnd": -1,
-      "requestStart": 0.353
-    },
-    {
-      "url": "http://localhost:3000/api/catalog/1102",
-      "status": 200,
-      "responseEnd": -1,
-      "requestStart": 0.3
+      "requestStart": 0.397
     },
     {
       "url": "http://localhost:3000/api/catalog/1046",
       "status": 200,
       "responseEnd": -1,
-      "requestStart": 0.199
+      "requestStart": 0.103
+    },
+    {
+      "url": "http://localhost:3000/api/catalog/1073",
+      "status": 200,
+      "responseEnd": -1,
+      "requestStart": 0.063
+    },
+    {
+      "url": "http://localhost:3000/api/catalog/1076",
+      "status": 200,
+      "responseEnd": -1,
+      "requestStart": 0.336
+    },
+    {
+      "url": "http://localhost:3000/api/catalog/1086",
+      "status": 200,
+      "responseEnd": -1,
+      "requestStart": 0.274
+    },
+    {
+      "url": "http://localhost:3000/api/catalog/1102",
+      "status": 200,
+      "responseEnd": -1,
+      "requestStart": 0.275
     },
     {
       "url": "http://localhost:3000/api/works?q=",
       "status": 200,
       "responseEnd": -1,
-      "requestStart": 0.108
+      "requestStart": 0.126
+    },
+    {
+      "url": "http://localhost:3000/api/catalog/10",
+      "status": 200,
+      "responseEnd": -1,
+      "requestStart": 0.131
+    },
+    {
+      "url": "http://localhost:3000/api/catalog/100",
+      "status": 200,
+      "responseEnd": -1,
+      "requestStart": 0.058
+    },
+    {
+      "url": "http://localhost:3000/api/catalog/1000",
+      "status": 200,
+      "responseEnd": -1,
+      "requestStart": 0.072
+    },
+    {
+      "url": "http://localhost:3000/api/catalog/1001",
+      "status": 200,
+      "responseEnd": -1,
+      "requestStart": 0.063
+    },
+    {
+      "url": "http://localhost:3000/api/catalog/1002",
+      "status": 200,
+      "responseEnd": -1,
+      "requestStart": 0.063
+    },
+    {
+      "url": "http://localhost:3000/api/catalog/1046",
+      "status": 200,
+      "responseEnd": -1,
+      "requestStart": 0.046
+    },
+    {
+      "url": "http://localhost:3000/api/catalog/1073",
+      "status": 200,
+      "responseEnd": -1,
+      "requestStart": 0.029
+    },
+    {
+      "url": "http://localhost:3000/api/catalog/1076",
+      "status": 200,
+      "responseEnd": -1,
+      "requestStart": 0.026
+    },
+    {
+      "url": "http://localhost:3000/api/catalog/1086",
+      "status": 200,
+      "responseEnd": -1,
+      "requestStart": 0.022
+    },
+    {
+      "url": "http://localhost:3000/api/catalog/1102",
+      "status": 200,
+      "responseEnd": -1,
+      "requestStart": 0.019
+    },
+    {
+      "url": "http://localhost:3000/api/catalog/1046",
+      "status": 200,
+      "responseEnd": -1,
+      "requestStart": 0.244
+    },
+    {
+      "url": "http://localhost:3000/api/catalog/1073",
+      "status": 200,
+      "responseEnd": -1,
+      "requestStart": 0.249
+    },
+    {
+      "url": "http://localhost:3000/api/catalog/1076",
+      "status": 200,
+      "responseEnd": -1,
+      "requestStart": 0.069
+    },
+    {
+      "url": "http://localhost:3000/api/catalog/1086",
+      "status": 200,
+      "responseEnd": -1,
+      "requestStart": 0.045
+    },
+    {
+      "url": "http://localhost:3000/api/catalog/1102",
+      "status": 200,
+      "responseEnd": -1,
+      "requestStart": 0.044
     }
   ],
   "performance": {
-    "topLoadMs": 4194,
-    "searchInputToResponseMs": 1438,
+    "topLoadMs": 6751,
+    "searchInputToResponseMs": 405,
     "searchApiStatus": 200,
-    "searchInputToFirstResultMs": 3238,
-    "searchColdMs": 3238,
-    "searchCachedMs": 53,
-    "detailNavMs": 1118,
+    "searchInputToFirstResultMs": 457,
+    "searchColdMs": 457,
+    "searchCachedMs": 74,
+    "detailNavMs": 435,
     "webVitals": {
-      "domContentLoaded": 410.7999999523163,
-      "loadEventEnd": 1093,
-      "firstPaint": 460,
-      "firstContentfulPaint": 460
+      "domContentLoaded": 294.7999999523163,
+      "loadEventEnd": 906.5999999046326,
+      "firstPaint": 360,
+      "firstContentfulPaint": 360
     }
   },
-  "issues": [
-    "詳細遷移が 1118ms（目標: 500ms以内）"
-  ]
+  "issues": []
 }
