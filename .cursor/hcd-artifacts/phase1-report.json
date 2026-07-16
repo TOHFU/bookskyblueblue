@@ -1,36 +1,36 @@
 {
   "base": "http://localhost:3000",
-  "startedAt": "2026-07-16T07:52:23.758Z",
+  "startedAt": "2026-07-16T08:00:39.236Z",
   "steps": [
     {
       "name": "top_load",
       "ok": true,
-      "durationMs": 3796
+      "durationMs": 3806
     },
     {
       "name": "open_search",
       "ok": true,
-      "durationMs": 174
+      "durationMs": 193
     },
     {
       "name": "search_query",
       "ok": true,
-      "durationMs": 4352
+      "durationMs": 15604
     },
     {
       "name": "search_same_query_cached",
       "ok": true,
-      "durationMs": 437
+      "durationMs": 464
     },
     {
       "name": "open_detail",
       "ok": true,
-      "durationMs": 962
+      "durationMs": 945
     },
     {
       "name": "back_to_top_and_check_empty_or_list",
       "ok": true,
-      "durationMs": 184
+      "durationMs": 186
     }
   ],
   "apiTimings": [
@@ -38,58 +38,58 @@
       "url": "http://localhost:3000/api/works?q=%E5%A4%8F%E7%9B%AE%E6%BC%B1%E7%9F%B3",
       "status": 200,
       "responseEnd": -1,
-      "requestStart": 0.151
+      "requestStart": 0.163
     },
     {
       "url": "http://localhost:3000/api/catalog/1046",
       "status": 200,
       "responseEnd": -1,
-      "requestStart": 0.363
+      "requestStart": 0.289
     },
     {
       "url": "http://localhost:3000/api/catalog/1073",
       "status": 200,
       "responseEnd": -1,
-      "requestStart": 0.082
+      "requestStart": 0.45
     },
     {
       "url": "http://localhost:3000/api/catalog/1076",
       "status": 200,
       "responseEnd": -1,
-      "requestStart": 0.466
+      "requestStart": 0.261
     },
     {
       "url": "http://localhost:3000/api/catalog/1086",
       "status": 200,
       "responseEnd": -1,
-      "requestStart": 0.278
+      "requestStart": 0.257
     },
     {
       "url": "http://localhost:3000/api/catalog/1102",
       "status": 200,
       "responseEnd": -1,
-      "requestStart": 0.262
+      "requestStart": 0.521
     },
     {
       "url": "http://localhost:3000/api/works?q=",
       "status": 200,
       "responseEnd": -1,
-      "requestStart": 0.2
+      "requestStart": 0.263
     }
   ],
   "performance": {
-    "topLoadMs": 3705,
-    "searchInputToResponseMs": 2451,
+    "topLoadMs": 3691,
+    "searchInputToResponseMs": 1936,
     "searchApiStatus": 200,
-    "searchInputToFirstResultMs": 4248,
-    "searchColdMs": 4248,
-    "searchCachedMs": 62,
-    "detailNavMs": 487,
+    "searchInputToFirstResultMs": 15316,
+    "searchColdMs": 15316,
+    "searchCachedMs": 74,
+    "detailNavMs": 476,
     "webVitals": {
-      "domContentLoaded": 53,
-      "loadEventEnd": 646.6000000238419,
-      "firstPaint": 120,
-      "firstContentfulPaint": 120
+      "domContentLoaded": 55.799999952316284,
+      "loadEventEnd": 658.7999999523163,
+      "firstPaint": 128,
+      "firstContentfulPaint": 128
     }
   },
   "issues": []
