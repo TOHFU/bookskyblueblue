@@ -90,9 +90,7 @@ export function BookScreen({ identifier }: BookScreenProps) {
         {htmlContent !== null && (
           <Box
             ref={innerRef}
-            className={
-              isReady ? "book-content book-content-fadein" : "book-content"
-            }
+            className="book-content"
             position="absolute"
             right="0"
             top="0"
