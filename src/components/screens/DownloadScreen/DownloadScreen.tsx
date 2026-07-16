@@ -22,8 +22,8 @@ export function DownloadScreen({ identifier }: DownloadScreenProps) {
     <Box
       as="main"
       aria-busy={status === "downloading"}
-      w="375px"
-      minH="770px"
+      w="full"
+      minH="100svh"
       bg="bg"
       display="flex"
       flexDirection="column"
@@ -33,7 +33,6 @@ export function DownloadScreen({ identifier }: DownloadScreenProps) {
       pt="8"
       px="8"
       pb="20"
-      mx="auto"
     >
       {status === "error" ? (
         <Flex
