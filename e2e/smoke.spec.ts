@@ -93,6 +93,26 @@ test.describe("SEARCH画面", () => {
     await page.getByRole("button", { name: "TOPに戻る" }).click();
     await expect(page).toHaveURL("/");
   });
+
+  // 検索結果カードはIntersectionObserverの通知を待つフェードイン演出を持つため、
+  // 表示直後(マウント時点で画面内にある間)は不透明度0のまま見えなくなっていた
+  // 不具合(回帰実績あり)の再発を防ぐための検証。
+  test("検索結果カードは表示された瞬間から不透明である", async ({ page }) => {
+    await mockAkutagawaSearch(page);
+    await page.goto("/search");
+    const input = page.getByRole("textbox", { name: "作品を検索" });
+    await input.fill(AKUTAGAWA_QUERY);
+
+    const firstArticle = page.getByRole("article").first();
+    await firstArticle.waitFor({ timeout: 10000 });
+
+    const opacity = await firstArticle.evaluate((element) => {
+      const target = element.parentElement ?? element;
+      return window.getComputedStyle(target).opacity;
+    });
+
+    expect(Number(opacity)).toBeCloseTo(1, 1);
+  });
 });
 
 // ----------------------------------------------------------------
