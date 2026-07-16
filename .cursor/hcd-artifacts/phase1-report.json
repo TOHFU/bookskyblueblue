@@ -1,36 +1,36 @@
 {
   "base": "http://localhost:3000",
-  "startedAt": "2026-07-16T08:00:39.236Z",
+  "startedAt": "2026-07-16T08:19:54.658Z",
   "steps": [
     {
       "name": "top_load",
       "ok": true,
-      "durationMs": 3806
+      "durationMs": 574
     },
     {
       "name": "open_search",
       "ok": true,
-      "durationMs": 193
+      "durationMs": 428
     },
     {
       "name": "search_query",
       "ok": true,
-      "durationMs": 15604
+      "durationMs": 326
     },
     {
       "name": "search_same_query_cached",
       "ok": true,
-      "durationMs": 464
+      "durationMs": 370
     },
     {
       "name": "open_detail",
       "ok": true,
-      "durationMs": 945
+      "durationMs": 863
     },
     {
       "name": "back_to_top_and_check_empty_or_list",
       "ok": true,
-      "durationMs": 186
+      "durationMs": 174
     }
   ],
   "apiTimings": [
@@ -38,58 +38,118 @@
       "url": "http://localhost:3000/api/works?q=%E5%A4%8F%E7%9B%AE%E6%BC%B1%E7%9F%B3",
       "status": 200,
       "responseEnd": -1,
-      "requestStart": 0.163
+      "requestStart": 0.319
     },
     {
       "url": "http://localhost:3000/api/catalog/1046",
       "status": 200,
       "responseEnd": -1,
-      "requestStart": 0.289
+      "requestStart": 0.128
     },
     {
       "url": "http://localhost:3000/api/catalog/1073",
       "status": 200,
       "responseEnd": -1,
-      "requestStart": 0.45
+      "requestStart": 1.038
     },
     {
       "url": "http://localhost:3000/api/catalog/1076",
       "status": 200,
       "responseEnd": -1,
-      "requestStart": 0.261
+      "requestStart": 1.188
     },
     {
       "url": "http://localhost:3000/api/catalog/1086",
       "status": 200,
       "responseEnd": -1,
-      "requestStart": 0.257
+      "requestStart": 0.99
     },
     {
       "url": "http://localhost:3000/api/catalog/1102",
       "status": 200,
       "responseEnd": -1,
-      "requestStart": 0.521
+      "requestStart": 0.808
     },
     {
       "url": "http://localhost:3000/api/works?q=",
       "status": 200,
       "responseEnd": -1,
-      "requestStart": 0.263
+      "requestStart": 0.087
+    },
+    {
+      "url": "http://localhost:3000/api/catalog/10",
+      "status": 200,
+      "responseEnd": -1,
+      "requestStart": 0.07
+    },
+    {
+      "url": "http://localhost:3000/api/catalog/100",
+      "status": 200,
+      "responseEnd": -1,
+      "requestStart": 0.146
+    },
+    {
+      "url": "http://localhost:3000/api/catalog/1000",
+      "status": 200,
+      "responseEnd": -1,
+      "requestStart": 0.042
+    },
+    {
+      "url": "http://localhost:3000/api/catalog/1001",
+      "status": 200,
+      "responseEnd": -1,
+      "requestStart": 0.09
+    },
+    {
+      "url": "http://localhost:3000/api/catalog/1002",
+      "status": 200,
+      "responseEnd": -1,
+      "requestStart": 0.187
+    },
+    {
+      "url": "http://localhost:3000/api/catalog/1046",
+      "status": 200,
+      "responseEnd": -1,
+      "requestStart": 0.059
+    },
+    {
+      "url": "http://localhost:3000/api/catalog/1073",
+      "status": 200,
+      "responseEnd": -1,
+      "requestStart": 0.027
+    },
+    {
+      "url": "http://localhost:3000/api/catalog/1076",
+      "status": 200,
+      "responseEnd": -1,
+      "requestStart": 0.167
+    },
+    {
+      "url": "http://localhost:3000/api/catalog/1086",
+      "status": 200,
+      "responseEnd": -1,
+      "requestStart": 0.195
+    },
+    {
+      "url": "http://localhost:3000/api/catalog/1102",
+      "status": 200,
+      "responseEnd": -1,
+      "requestStart": 0.35
     }
   ],
   "performance": {
-    "topLoadMs": 3691,
-    "searchInputToResponseMs": 1936,
+    "topLoadMs": 442,
+    "searchInputToResponseMs": 218,
     "searchApiStatus": 200,
-    "searchInputToFirstResultMs": 15316,
-    "searchColdMs": 15316,
-    "searchCachedMs": 74,
-    "detailNavMs": 476,
+    "searchInputToFirstResultMs": 250,
+    "searchColdMs": 250,
+    "searchCachedMs": 20,
+    "detailNavMs": 386,
     "webVitals": {
-      "domContentLoaded": 55.799999952316284,
-      "loadEventEnd": 658.7999999523163,
-      "firstPaint": 128,
-      "firstContentfulPaint": 128
+      "domContentLoaded": 73.09999990463257,
+      "loadEventEnd": 439.59999990463257,
+      "firstPaint": 116,
+      "firstContentfulPaint": 116
     }
   },
   "issues": []

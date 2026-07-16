@@ -69,7 +69,10 @@ async function main() {
 
   await step("top_load", async () => {
     const t0 = Date.now();
-    await page.goto(`${BASE}/`, { waitUntil: "networkidle" });
+    // "networkidle" はGTM等のサードパーティ計測タグの長時間接続に影響され、
+    // 実際のユーザー体感（初回描画完了）より大幅に長く計測されてしまうため、
+    // load イベント完了を基準にする。
+    await page.goto(`${BASE}/`, { waitUntil: "load" });
     report.performance.topLoadMs = Date.now() - t0;
     await page.screenshot({
       path: path.join(OUT, "01-top.png"),
