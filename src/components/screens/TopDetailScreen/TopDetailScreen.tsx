@@ -4,6 +4,7 @@ import { Box, Flex } from "@chakra-ui/react";
 import { AppScreenBackground } from "@/components/ui/AppScreenBackground";
 import { AppToolbar } from "@/components/ui/AppToolbar";
 import { BackButton } from "@/components/ui/BackButton";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { StatusMessage } from "@/components/ui/StatusMessage";
 import { ToolbarCloseButton } from "@/components/ui/ToolbarCloseButton";
 import { useTopDetailScreen } from "@/hooks/screens/useTopDetailScreen";
@@ -45,7 +46,7 @@ export function TopDetailScreen({ identifier }: TopDetailScreenProps) {
         <BackButton aria-label="前の画面に戻る" onClick={handleBack} />
 
         {isLoading ? (
-          <StatusMessage>読み込み中...</StatusMessage>
+          <LoadingSpinner label="作品情報を読み込み中" />
         ) : work ? (
           <>
             <TopDetailCard
