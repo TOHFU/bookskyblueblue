@@ -64,7 +64,6 @@ export function TopScreen() {
         w="full"
         position="relative"
         zIndex={1}
-        className={isLoading ? undefined : "top-content-fadein"}
       >
         {isLoading ? (
           <LoadingSpinner label="保存済み作品を読み込み中" />
