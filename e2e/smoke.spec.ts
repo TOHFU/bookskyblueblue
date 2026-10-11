@@ -58,7 +58,7 @@ test.describe("TOP画面", () => {
     await page.goto("/");
     await page.getByRole("button", { name: "ヘルプを開く" }).click();
     await expect(page).toHaveURL(/\/about/);
-    await expect(page.getByText("BOOK SKY, BLUE BLUEは、")).toBeVisible();
+    await expect(page.getByRole("heading", { name: /BOOK SKY, BLUE BLUEは、/ })).toBeVisible();
   });
 });
 

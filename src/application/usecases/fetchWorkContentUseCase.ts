@@ -5,6 +5,25 @@ const CHARSET_MAP: Record<string, string> = {
   Unicode: "utf-8",
 };
 
+function validateWorkContentUrl(value: string): URL {
+  const url = new URL(value);
+  if (
+    url.protocol !== "https:" ||
+    url.hostname !== "www.aozora.gr.jp" ||
+    url.port !== "" ||
+    url.username !== "" ||
+    url.password !== "" ||
+    !url.pathname.startsWith("/cards/") ||
+    !url.pathname.endsWith(".html") ||
+    url.search !== "" ||
+    url.hash !== ""
+  ) {
+    throw new Error("作品本文のURLが許可されていません");
+  }
+
+  return url;
+}
+
 export async function fetchWorkContentUseCase(
   repository: WorkCatalogRepository,
   identifier: string,
@@ -16,11 +35,13 @@ export async function fetchWorkContentUseCase(
     return null;
   }
 
-  const response = await fetcher(work.htmlFileUrl, {
+  const url = validateWorkContentUrl(work.htmlFileUrl);
+  const response = await fetcher(url, {
     headers: {
       "User-Agent": "BookSkyBlueBlue/1.0",
     },
     signal: AbortSignal.timeout(10000),
+    redirect: "error",
   });
 
   if (!response.ok) {
