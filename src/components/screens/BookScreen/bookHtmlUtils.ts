@@ -1,4 +1,4 @@
-import DOMPurify from "isomorphic-dompurify";
+import DOMPurify from "dompurify";
 
 /** imgタグをalt属性のテキストに置換し、スクリプト・危険な属性を除去する */
 export function sanitizeHtml(html: string): string {
