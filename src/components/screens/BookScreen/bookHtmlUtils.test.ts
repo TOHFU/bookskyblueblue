@@ -18,6 +18,12 @@ describe("sanitizeHtml", () => {
     expect(sanitizeHtml(input)).not.toContain("onclick");
   });
 
+  it("引用符なしのイベント属性とSVGを除去する", () => {
+    const input = '<img src=x onerror=alert(1)><svg onload=alert(2)><script>alert(3)</script></svg>';
+    const result = sanitizeHtml(input);
+    expect(result).not.toMatch(/onerror|onload|<svg|<script|alert\(/i);
+  });
+
   it("javascript: href を除去する", () => {
     const input = '<a href="javascript:void(0)">リンク</a>';
     expect(sanitizeHtml(input)).not.toContain("javascript:");
